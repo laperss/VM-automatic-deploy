@@ -24,6 +24,7 @@ class Manager:
         self.password=parser.get("auth","password")
         self.tenant_name=parser.get("auth","tenant_name")
         self.auth_url=parser.get("auth","auth_url")
+        self.net_id=parser.get("auth","net_id")
         auth = v2.Password(username=self.username, password=self.password, tenant_name=self.tenant_name, auth_url=self.auth_url)
         sess = session.Session(auth=auth)
         self.nova = NovaClient("2", session = sess)
@@ -31,7 +32,7 @@ class Manager:
     def create(self, name=""):
         image = self.nova.images.find(name=Manager.DEFAULT_IMAGE)
         flavor = self.nova.flavors.find(name=Manager.DEFAULT_FLAVOUR)
-        net = self.nova.networks.find(label=self.tenant_name)
+        net = self.nova.networks.find(label=self.net_id)
         nics = [{'net-id': net.id}]
         vm = self.nova.servers.create(name=name, image=image, flavor=flavor, key_name=self.pkey_id,
                                       nics=nics, userdata=open(self.start_script))
@@ -79,7 +80,7 @@ class Manager:
       instance = self.nova.servers.find(name=vm)
       #print(instance.networks)
       #ip=instance.networks['CloudCourse'][0]
-      print  (instance.networks[self.tenant_name]) #("ipaddress:"+ip);
+      print  (instance.networks[self.net_id]) #("ipaddress:"+ip);
 
     def describe(self, vm):
         instance = self.nova.servers.find(name=vm)
