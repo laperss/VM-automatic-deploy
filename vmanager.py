@@ -9,8 +9,7 @@ from optparse import OptionParser
 class Manager:
     DEFAULT_IMAGE = "Ubuntu 16.04 LTS"
     DEFAULT_FLAVOUR = "m1.medium"
-    def __init__(self, pkey_id=None,start_script=None):
-        self.pkey_id = pkey_id
+    def __init__(self, start_script=None):
         self.start_script = start_script
 
 	parser = SafeConfigParser()
@@ -25,6 +24,7 @@ class Manager:
         self.tenant_name=parser.get("auth","tenant_name")
         self.auth_url=parser.get("auth","auth_url")
         self.net_id=parser.get("auth","net_id")
+        self.pkey_id=parser.get("auth","pkey_id")
         auth = v2.Password(username=self.username, password=self.password, tenant_name=self.tenant_name, auth_url=self.auth_url)
         sess = session.Session(auth=auth)
         self.nova = NovaClient("2", session = sess)
@@ -104,8 +104,7 @@ if __name__=="__main__":
    (options, args) = parser.parse_args()
    #print(args)
    if options.action:
-	#manager = Manager(pkey_id = "muyi", start_script="vm-init.sh")
-	manager = Manager(pkey_id = "muyi", start_script=options.initFile)
+	manager = Manager(start_script=options.initFile)
         #manager.list()
 	if options.action == "list":
        	       manager.list()
