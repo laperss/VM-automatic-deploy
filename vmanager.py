@@ -9,8 +9,7 @@ from optparse import OptionParser
 class Manager:
     DEFAULT_IMAGE = "Ubuntu 16.04 LTS"
     DEFAULT_FLAVOUR = "m1.medium"
-    def __init__(self, pkey_id=None,start_script=None):
-        self.pkey_id = pkey_id
+    def __init__(self, start_script=None):
         self.start_script = start_script
 
 	parser = SafeConfigParser()
@@ -24,6 +23,8 @@ class Manager:
         self.password=parser.get("auth","password")
         self.tenant_name=parser.get("auth","tenant_name")
         self.auth_url=parser.get("auth","auth_url")
+        self.net_id=parser.get("auth","net_id")
+        self.pkey_id=parser.get("auth","pkey_id")
         auth = v2.Password(username=self.username, password=self.password, tenant_name=self.tenant_name, auth_url=self.auth_url)
         sess = session.Session(auth=auth)
         self.nova = NovaClient("2", session = sess)
@@ -31,7 +32,7 @@ class Manager:
     def create(self, name=""):
         image = self.nova.images.find(name=Manager.DEFAULT_IMAGE)
         flavor = self.nova.flavors.find(name=Manager.DEFAULT_FLAVOUR)
-        net = self.nova.networks.find(label=self.tenant_name)
+        net = self.nova.networks.find(label=self.net_id)
         nics = [{'net-id': net.id}]
         vm = self.nova.servers.create(name=name, image=image, flavor=flavor, key_name=self.pkey_id,
                                       nics=nics, userdata=open(self.start_script))
@@ -79,7 +80,7 @@ class Manager:
       instance = self.nova.servers.find(name=vm)
       #print(instance.networks)
       #ip=instance.networks['CloudCourse'][0]
-      print  (instance.networks[self.tenant_name]) #("ipaddress:"+ip);
+      print  (instance.networks[self.net_id]) #("ipaddress:"+ip);
 
     def describe(self, vm):
         instance = self.nova.servers.find(name=vm)
@@ -103,8 +104,7 @@ if __name__=="__main__":
    (options, args) = parser.parse_args()
    #print(args)
    if options.action:
-	#manager = Manager(pkey_id = "muyi", start_script="vm-init.sh")
-	manager = Manager(pkey_id = "muyi", start_script=options.initFile)
+	manager = Manager(start_script=options.initFile)
         #manager.list()
 	if options.action == "list":
        	       manager.list()
