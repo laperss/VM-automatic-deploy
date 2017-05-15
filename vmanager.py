@@ -1,5 +1,5 @@
 from __future__ import print_function
-from keystoneauth1.identity import v2
+from keystoneauth1.identity import v3
 from keystoneauth1 import session
 from novaclient.client import Client as NovaClient
 import datetime, sys, time
@@ -7,8 +7,8 @@ from ConfigParser import SafeConfigParser
 from optparse import OptionParser
 
 class Manager:
-    DEFAULT_IMAGE = "Ubuntu 16.04 LTS"
-    DEFAULT_FLAVOUR = "m1.medium"
+    DEFAULT_IMAGE = "ubuntu 16.04"
+    DEFAULT_FLAVOUR = "c2m2"
     def __init__(self, start_script=None):
         self.start_script = start_script
 
@@ -22,10 +22,14 @@ class Manager:
         self.username=parser.get("auth","username")
         self.password=parser.get("auth","password")
         self.tenant_name=parser.get("auth","tenant_name")
+        self.user_domain=parser.get("auth","user_domain")
+        self.project_domain=parser.get("auth","project_domain")
+        self.project_domain_id=parser.get("auth","project_domain_id")
         self.auth_url=parser.get("auth","auth_url")
         self.net_id=parser.get("auth","net_id")
         self.pkey_id=parser.get("auth","pkey_id")
-        auth = v2.Password(username=self.username, password=self.password, tenant_name=self.tenant_name, auth_url=self.auth_url)
+        auth = v3.Password(username=self.username, password=self.password, project_name=self.tenant_name, auth_url=self.auth_url,
+                            user_domain_name=self.user_domain, project_domain_name=self.project_domain, project_id=self.project_domain_id)
         sess = session.Session(auth=auth)
         self.nova = NovaClient("2", session = sess)
 
