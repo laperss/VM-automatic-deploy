@@ -14,5 +14,6 @@ sudo apt-get install -y python-pika
 mkdir /usr/local/
 cd /usr/local/
 
-# echo "Cloning repo with WASP"
-git clone https://github.com/muyiibidun/WASP.git
+# echo "Cloning code and credentials into backend VM"
+wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/waspmq/backend.py
+wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/waspmq/credentials.txt
