@@ -20,3 +20,6 @@ cd /var/www
 # echo "Cloning code and credentials into frontend VM"
 wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/waspmq/frontend.py
 wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/waspmq/credentials.txt
+
+# start server
+python frontend.py -c credentials.txt 
