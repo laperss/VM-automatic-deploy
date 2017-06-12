@@ -21,7 +21,9 @@ cd /usr/local/WASP
 wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/waspmq/backend.py
 wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/waspmq/credentials.txt
 
+echo "Update the server IP adress"
 sed -i 's/server=.*/server='$mqIP'/' credentials.txt
 
-# start backend 
+# start backend
+echo "Run backend"
 python backend.py -c credentials.txt 
