@@ -39,8 +39,8 @@ sudo service rabbitmq-server start
 sudo apt-get install -y python-pika
 
 # create users and set privileges to enable remote connection
-rabbitmqctl add_user test test
-rabbitmqctl set_user_tags test administrator
-rabbitmqctl set_permissions -p / test ".*" ".*" ".*"
+rabbitmqctl add_user linnea linnea
+rabbitmqctl set_user_tags linnea administrator
+rabbitmqctl set_permissions -p / linnea ".*" ".*" ".*"
 
 
