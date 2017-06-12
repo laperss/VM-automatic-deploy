@@ -2,20 +2,7 @@
 Use Python and NovaStack to automaticly deploy VMs. 
 
 ## Instructions
-To run the script, a credentials file is needed. Update the file "credentials.txt" to ocntain the following information: 
-```
-[auth] 
-username:test 
-password:test 
-tenant_name:CloudCourse 
-auth_url:http://94.246.116.242:5000/v2.0 
-net_id: net_id 
-pkey_id:pkey_id 
-```
-Then run the following script:
-```bash
-./deploy-waspmq.sh 
-```
+To start a VM, run one of the "deploy-[VM].sh" scripts.
 
 ## Dependencies
 ```bash
