@@ -1,4 +1,7 @@
 #!/bin/sh
+# Find correct IP adress of the RabbitMQ:
 export mqIP=`python vmanager.py --action show-ip waspmq`
-sed 's/rabbitmq-IP/@mqIP/' waspmq/credentials.txt > waspmq/credentials2.txt
-###python vmanager.py -c waspmq/backend.sh -a create waspmq-backend
+# Update the credentials
+sed -i 's/server=.*/server='$mqIP'/' waspmq/credentials.txt
+# Create backend
+python vmanager.py -c waspmq/backend.sh -a create waspmq-backend
