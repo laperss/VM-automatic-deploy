@@ -1,3 +1,27 @@
-# WASP
+## Automatic VM Deployment
+Use Python and NovaStack to automaticly deploy VMs. 
 
-This repo contains two applications (**waspy** and **waspmq**) used as a tutorial in Cloud Application Development for the *WASP Graduate School* module in [Cloud Computing](http://wasp-sweden.org/graduate-school/courses/software-engineering-and-cloud-computing/cloud-computing/) at Umea University, Umea, Sweden. May 2017. 
+## Instructions
+To run the script, a credentials file is needed. Update the file "credentials.txt" to ocntain the following information: 
+```
+[auth] 
+username:test 
+password:test 
+tenant_name:CloudCourse 
+auth_url:http://94.246.116.242:5000/v2.0 
+net_id: net_id 
+pkey_id:pkey_id 
+```
+Then run the following script:
+```bash
+./deploy-waspmq.sh 
+```
+
+## Dependencies
+```bash
+$ sudo apt-get update 
+$ sudo apt install python-dev python-pip  
+$ export LC_ALL=C 
+$ sudo pip install python-novaclient==7.1.0 
+$ sudo pip install python-swiftclient
+```
