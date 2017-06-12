@@ -14,7 +14,7 @@ sudo apt-get install -y python-pip
 sudo apt-get install -y python-pika
 
 # prepare directory 
-mkdir /usr/local/WASP
+mkdir -p /usr/local/WASP
 cd /usr/local/WASP
 
 # echo "Cloning code and credentials into backend VM"
