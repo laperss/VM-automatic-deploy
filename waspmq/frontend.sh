@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# export RabbitMQ IP
+export mqIP=192.168.50.16
+
 # set hostname 
 sudo echo waspmq-frontend > /etc/hostname
 sudo sed -i "s/127.0.0.1 localhost/127.0.0.1 waspmq-frontend/g" /etc/hosts
@@ -18,8 +21,11 @@ mkdir /var/www
 cd /var/www
 
 # echo "Cloning code and credentials into frontend VM"
+
 wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/waspmq/frontend.py
 wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/waspmq/credentials.txt
+
+sed -i 's/server=.*/server='$mqIP'/' credentials.txt
 
 # start server
 python frontend.py -c credentials.txt 
