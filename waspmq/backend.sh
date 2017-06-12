@@ -17,3 +17,6 @@ cd /usr/local/
 # echo "Cloning code and credentials into backend VM"
 wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/waspmq/backend.py
 wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/waspmq/credentials.txt
+
+# start backend 
+python backend.py -c credentials.txt 
