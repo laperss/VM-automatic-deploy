@@ -17,5 +17,6 @@ sudo pip install Flask
 mkdir /var/www
 cd /var/www
 
-# echo "Cloning repo with WASP2"
-git clone https://github.com/muyiibidun/WASP.git
+# echo "Cloning code and credentials into frontend VM"
+wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/waspmq/frontend.py
+wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/waspmq/credentials.txt
