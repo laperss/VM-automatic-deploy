@@ -3,7 +3,7 @@ from keystoneauth1.identity import v3
 from keystoneauth1 import session
 from novaclient.client import Client as NovaClient
 import datetime, sys, time
-from ConfigParser import SafeConfigParser 
+from configparser import SafeConfigParser 
 from optparse import OptionParser
 
 class Manager:
@@ -40,7 +40,6 @@ class Manager:
         nics = [{'net-id': net.id}]
         vm = self.nova.servers.create(name=name, image=image, flavor=flavor, key_name=self.pkey_id,
                                       nics=nics, userdata=open(self.start_script))
-        print("VM %s created"%name.upper())
         return
 
     def assign_floating_IP(self, vm):
@@ -49,7 +48,6 @@ class Manager:
         instance = self.nova.servers.find(name=vm)
         instance.add_floating_ip(floating_ip)
         print("floating IP %s is assigned to %s VM", floating_ip.ip, vm)
-        #return floating_ip
 
     def list(self):
         for idx, server in enumerate(self.nova.servers.list()):
@@ -82,12 +80,9 @@ class Manager:
 
     def get_IP(self, vm):
       instance = self.nova.servers.find(name=vm)
-      #print(instance.networks)
-      #ip=instance.networks['CloudCourse'][0]
-      # print  (instance.networks[self.net_id]) #("ipaddress:"+ip);
-      print  (instance.networks[self.net_id][0]) #("ipaddress:"+ip);
+      print(instance.networks[self.net_id][0]) #("ipaddress:"+ip);
 
-    def describe(self, vm):
+      def describe(self, vm):
         instance = self.nova.servers.find(name=vm)
         print("server id: %s\n" % instance.id)
         print("server name: %s\n" % instance.name)
@@ -105,10 +100,10 @@ if __name__=="__main__":
     parser.add_option('-a', '--action', dest='action', help='Action to perform: [list | terminate VM_NAME | create VM_NAME | describe VM_NAME | show-ip VM_NAME | assign-fip VM_NAME]',
                       default="list", metavar='ACTION')
     (options, args) = parser.parse_args()
-    #print(args)
     if options.action:
         manager = Manager(start_script=options.initFile)
-       #manager.list()
+    else:
+        print("Syntax: 'python vmanager.py -h' | '--help' for help")
     if options.action == "list":
            manager.list()
     if options.action == "list-ips":
@@ -118,13 +113,9 @@ if __name__=="__main__":
     if options.action == "create":
         manager.start_script = options.initFile
         manager.create(name=args[0])
-        #time.sleep(1)
-        #print(manager.get_IP(vm=args[0]))
     if options.action == "describe":
         manager.describe(vm=args[0])
     if options.action == "show-ip":
         manager.get_IP(vm=args[0])
     if options.action == "assign-fip":
         manager.assign_floating_IP(vm=args[0])
-    else:
-        print("Syntax: 'python vmanager.py -h' | '--help' for help")
