@@ -12,12 +12,12 @@ class Manager:
     def __init__(self, start_script=None):
         self.start_script = start_script
 
-	parser = SafeConfigParser()
-	try:
-        	parser.read("credentials.txt")
-	except IOError:
-		print("Credential file missing")
-		sys.exit()
+        parser = SafeConfigParser()
+        try:
+            parser.read("credentials.txt")
+        except IOError:
+            print("Credential file missing")
+            sys.exit()
 
         self.username=parser.get("auth","username")
         self.password=parser.get("auth","password")
@@ -41,7 +41,7 @@ class Manager:
         vm = self.nova.servers.create(name=name, image=image, flavor=flavor, key_name=self.pkey_id,
                                       nics=nics, userdata=open(self.start_script))
         print("VM %s created"%name.upper())
-	return
+        return
 
     def assign_floating_IP(self, vm):
         self.nova.floating_ip_pools.list()
@@ -49,7 +49,7 @@ class Manager:
         instance = self.nova.servers.find(name=vm)
         instance.add_floating_ip(floating_ip)
         print("floating IP %s is assigned to %s VM", floating_ip.ip, vm)
-	#return floating_ip
+        #return floating_ip
 
     def list(self):
         for idx, server in enumerate(self.nova.servers.list()):
@@ -100,33 +100,31 @@ class Manager:
 #        pass
 
 if __name__=="__main__":
-   parser = OptionParser()
-
-   parser.add_option('-c', '--initfile', dest='initFile', help='Path to INITFILE', metavar='INITFILE', default="vm-init.sh")
-   parser.add_option('-a', '--action', dest='action', 
-		     help='Action to perform: [list | terminate VM_NAME | create VM_NAME | describe VM_NAME | show-ip VM_NAME | assign-fip VM_NAME]',
-                     default="list", metavar='ACTION')
-   (options, args) = parser.parse_args()
-   #print(args)
-   if options.action:
-	manager = Manager(start_script=options.initFile)
-        #manager.list()
-	if options.action == "list":
-       	       manager.list()
-        if options.action == "list-ips":
-              manager.get_IPs()
-        if options.action == "terminate":
-              manager.terminate(vm=args[0])
-        if options.action == "create":
-            manager.start_script = options.initFile
-            manager.create(name=args[0])
-		    #time.sleep(1)
-	        #print(manager.get_IP(vm=args[0]))
-        if options.action == "describe":
-            manager.describe(vm=args[0])
-        if options.action == "show-ip":
-            manager.get_IP(vm=args[0])
-        if options.action == "assign-fip":
-            manager.assign_floating_IP(vm=args[0])
-   else:
+    parser = OptionParser()
+    parser.add_option('-c', '--initfile', dest='initFile', help='Path to INITFILE', metavar='INITFILE', default="vm-init.sh")
+    parser.add_option('-a', '--action', dest='action', help='Action to perform: [list | terminate VM_NAME | create VM_NAME | describe VM_NAME | show-ip VM_NAME | assign-fip VM_NAME]',
+                      default="list", metavar='ACTION')
+    (options, args) = parser.parse_args()
+    #print(args)
+    if options.action:
+        manager = Manager(start_script=options.initFile)
+       #manager.list()
+    if options.action == "list":
+           manager.list()
+    if options.action == "list-ips":
+        manager.get_IPs()
+    if options.action == "terminate":
+        manager.terminate(vm=args[0])
+    if options.action == "create":
+        manager.start_script = options.initFile
+        manager.create(name=args[0])
+        #time.sleep(1)
+        #print(manager.get_IP(vm=args[0]))
+    if options.action == "describe":
+        manager.describe(vm=args[0])
+    if options.action == "show-ip":
+        manager.get_IP(vm=args[0])
+    if options.action == "assign-fip":
+        manager.assign_floating_IP(vm=args[0])
+    else:
         print("Syntax: 'python vmanager.py -h' | '--help' for help")
