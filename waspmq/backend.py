@@ -27,11 +27,13 @@ def on_request(ch, method, props, body):
         print(" [.] convert video %s" %string)
         time.sleep(3)
         response = string
+        print("routing key:")
+        print(props.reply_to)
+        print("------------")
         
         ch.basic_publish(exchange='',
                          routing_key=props.reply_to,
-                         properties=pika.BasicProperties(correlation_id = \
-                                                         props.correlation_id),
+                         properties=pika.BasicProperties(correlation_id=props.correlation_id),
                          body=str(response))
         ch.basic_ack(delivery_tag = method.delivery_tag)
         
