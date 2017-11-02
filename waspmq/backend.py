@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import time
 import pika
 from optparse import OptionParser
 import ConfigParser
@@ -12,13 +13,29 @@ def receive(connection_info=None):
 	credentials = pika.PlainCredentials(connection_info["username"], connection_info["password"])
 	connection = pika.BlockingConnection(pika.ConnectionParameters(connection_info["server"],connection_info["port"],'/',credentials))
 	channel = connection.channel()
-
 	channel.queue_declare(queue=qname)
-	channel.basic_consume(callback, queue=qname, no_ack=True)
-	print(' [*] Waiting for messages. To exit press CTRL+C')
+        
+	#channel.basic_consume(callback, queue=qname, no_ack=True)
+        channel.basic_consume(on_request, queue=qname, no_ack=True)
+        channel.basic_qos(prefetch_count=1)
+
+        print(' [*] Waiting for messages. To exit press CTRL+C')
 	channel.start_consuming()
 
 
+def on_request(ch, method, props, body):
+        string = str(body)
+        print(" [.] convert video %s" %string)
+        time.sleep(3)
+        response = string
+        
+        ch.basic_publish(exchange='',
+                         routing_key=props.reply_to,
+                         properties=pika.BasicProperties(correlation_id = \
+                                                         props.correlation_id),
+                         body=str(response))
+        ch.basic_ack(delivery_tag = method.delivery_tag)
+        
 if __name__=="__main__":
 	parser = OptionParser()
 	parser.add_option('-c', '--credential', dest='credentialFile', help='Path to CREDENTIAL file', metavar='CREDENTIALFILE')
