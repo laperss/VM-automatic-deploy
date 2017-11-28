@@ -6,6 +6,8 @@ from __future__ import print_function
 import time
 import string
 import random
+import pika
+import configparser
 import vmanager
 
 
@@ -14,6 +16,16 @@ FRONTEND_SCRIPT = 'waspmq/backend.sh'
 RABBITMQ_SCRIPT = 'waspmq/waspmq.sh'
 
 NETWORK = 'sw_network'
+
+config = configparser.RawConfigParser()
+config.read('waspmq/credentials.txt')
+connection_info = {}
+connection_info["server"] = '192.168.50.13' #config.get('rabbit', 'server')
+connection_info["port"] = int(config.get('rabbit', 'port'))
+connection_info["queue"] = config.get('rabbit', 'queue')
+connection_info["username"]=config.get('rabbit', 'username')
+connection_info["password"]=config.get('rabbit', 'password')
+
 
 def id_generator(prefix, size=6):
     name = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in range(size))
@@ -71,12 +83,22 @@ vms = get_vms()
 for vm, ip in vms.items():
     print(vm, ip)
 
+
+print("* Connect to queue")
+credentials = pika.PlainCredentials(connection_info["username"], connection_info["password"])
+params = pika.ConnectionParameters(connection_info["server"],connection_info["port"],'/', credentials)
+connection = pika.BlockingConnection(parameters=params)
+
+print("* Connection succeeded: ", connection.is_open)
+connection.add_on_connection_blocked_callback(create_backend)
+channel = connection.channel()
+
 print("* Start monitoring...")
 i = 0
 try:
     while True:
         i += 1
-        
+        print('Messages in queue %d' % channel.get_waiting_message_count())
         vms = get_vms()
         if i == 2:
             demand = 0
