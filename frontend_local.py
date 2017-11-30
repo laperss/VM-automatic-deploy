@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, shlex, random, string, binascii, shutil, zmq, sys, time, uuid
+import os, shlex, random, string, binascii, shutil, sys, time, uuid
 from flask import Flask, request, redirect, url_for, render_template, send_file, session
 
 from subprocess import DEVNULL, STDOUT, call
@@ -15,6 +15,7 @@ class Connection:
 
     def on_response(self, ch, method, props, body):
         if self.corr_id == props.correlation_id:
+            print("File recieved")
             self.response = body.decode('utf-8')
             jsonToPython = json.loads(self.response)
             videoString = jsonToPython[u'video']['video']
@@ -22,8 +23,8 @@ class Connection:
             
             random_str = random_string()
             output_file = "output_%s.mkv" % (random_str)
+            
             output_path = os.path.join(app.config['UPLOAD_FOLDER'], output_file)
-
             f = open(output_path, 'wb')
             f.write(video)
             f.close()
@@ -49,13 +50,13 @@ class Connection:
         # Wait for response
         while self.response is None:
             #time.sleep(0.5)
-            print("Waiting for response...")
+            #print("Waiting for response...")
             connection.process_data_events()
         connection.close()
         return str(self.response)
 
 
-ALLOWED_EXTENSIONS = set(['mkv'])
+ALLOWED_EXTENSIONS = set(['mkv', 'mp4'])
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'tmp'
@@ -75,9 +76,10 @@ def random_string(size=6, chars=string.ascii_uppercase + string.digits):
 def main():
     if request.method == 'POST':
         input_ = request.files['file']
-        if input_:# and allowed_file(input.filename):
+        filename, input_ext = os.path.splitext(input_.filename)
+        print(filename)
+        if input_ and allowed_file(input_.filename):
             # Saving input file
-            filename, input_ext = os.path.splitext(input_.filename)
             string = ("Trying to send video '%s' to rabbitmq" %filename)
             random_str = random_string()
             input_file = "input_%s.mkv" % (random_str)
@@ -111,11 +113,11 @@ def main():
 def done():
     return render_template('done.html')
 
-@app.route("/file", methods=['GET'])
-def file():
+@app.route("/download_file", methods=['GET'])
+def download_file():
     output_path = session['output_path']
     _, output_ext = os.path.splitext(output_path)
-    return send_file(output_path,  attachment_filename='converted%s' % output_ext, as_attachment=True)
+    return send_file(output_path,  attachment_filename='converted_file%s' % output_ext, as_attachment=True)
 
 if __name__ == "__main__":
     # CONNECT TO BACKEND VIA RABBITMQ VM
