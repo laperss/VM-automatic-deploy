@@ -14,7 +14,7 @@ def callback(ch, method, properties, body):
 
 
 def convert_video(source, dest):
-        cmd = """mencoder %s -ovc lavc -lavcopts vcodec=mpeg4:vbitrate=3000 -oac copy -o %s &> /dev/null""" % (source, dest)
+        cmd = "mencoder %s -ovc lavc -lavcopts vcodec=mpeg4:vbitrate=3000 -oac copy -o %s >/dev/null 2>&1" % (source, dest)
         os.system(cmd)
 
 def id_generator(prefix, size=6):
