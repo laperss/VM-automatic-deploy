@@ -5,6 +5,9 @@ from optparse import OptionParser
 import ConfigParser
 import json
 import base64 
+import random
+import string
+import os
 
 def callback(ch, method, properties, body):
         print(" [x] Received %r" % body)
