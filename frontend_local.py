@@ -75,6 +75,8 @@ def random_string(size=6, chars=string.ascii_uppercase + string.digits):
 @app.route("/", methods=['GET', 'POST'])
 def main():
     if request.method == 'POST':
+        print("request.method == POST")
+        print(request.files)
         input_ = request.files['file']
         filename, input_ext = os.path.splitext(input_.filename)
         print(filename)
@@ -87,17 +89,13 @@ def main():
             input_.save(input_path)
             print("[local]\tSaving input file " + input_file + "...")
 
-            # Publish task to all workers
-            taskid = random.randint(0, 100)
-            task = "task " + str(taskid)
-
             with open(input_path, 'rb') as f:
                 contents = f.read()
                 base64_bytes = b64encode(contents)
                 base64_string = base64_bytes.decode('utf-8')
                 raw_data = base64_string
 
-            pythonDictionary = {'filename':filename, 'video':raw_data, 'taskID':taskid}
+            pythonDictionary = {'filename':filename, 'video':raw_data}
             dictionaryToJson = json.dumps(pythonDictionary)
             messenger.send_to_queue(dictionaryToJson)
 
@@ -117,6 +115,16 @@ def done():
 def download_file():
     output_path = session['output_path']
     _, output_ext = os.path.splitext(output_path)
+    output_handle = open(output_path, 'r')
+    @after_this_request
+    def remove_file(response):
+        try:
+            os.remove(output_path)
+            output_handle.close()
+        except Exception as error:
+            app.logger.error("Error removing the output file: ", error)
+        return response
+    
     return send_file(output_path,  attachment_filename='converted_file%s' % output_ext, as_attachment=True)
 
 if __name__ == "__main__":
