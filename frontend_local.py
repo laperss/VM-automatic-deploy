@@ -18,16 +18,7 @@ class Connection:
             print("File recieved")
             self.response = body.decode('utf-8')
             jsonToPython = json.loads(self.response)
-            videoString = jsonToPython[u'video']['video']
-            video = b64decode(videoString)
-            
-            random_str = random_string()
-            output_file = "output_%s.mkv" % (random_str)
-            
-            output_path = os.path.join(app.config['UPLOAD_FOLDER'], output_file)
-            f = open(output_path, 'wb')
-            f.write(video)
-            f.close()
+            output_path = jsonToPython['output_path']
             session['output_path'] = output_path
             
     def send_to_queue(self, message="Hello!"):
@@ -59,7 +50,7 @@ class Connection:
 ALLOWED_EXTENSIONS = set(['mkv', 'mp4'])
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'tmp'
+app.config['UPLOAD_FOLDER'] = '/home/ubuntu/tmp'
 app.config['SECRET_KEY'] =  binascii.hexlify(os.urandom(24))
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -77,33 +68,20 @@ def main():
     if request.method == 'POST':
         print("request.method == POST")
         print(request.files)
-        input_ = request.files['file']
+        input_ = request.files['upload_file']
         filename, input_ext = os.path.splitext(input_.filename)
         print(filename)
         if input_ and allowed_file(input_.filename):
-            # Saving input file
-            string = ("Trying to send video '%s' to rabbitmq" %filename)
             random_str = random_string()
             input_file = "input_%s.mkv" % (random_str)
             input_path = os.path.join(app.config['UPLOAD_FOLDER'], input_file)
             input_.save(input_path)
-            print("[local]\tSaving input file " + input_file + "...")
-
-            with open(input_path, 'rb') as f:
-                contents = f.read()
-                base64_bytes = b64encode(contents)
-                base64_string = base64_bytes.decode('utf-8')
-                raw_data = base64_string
-
-            pythonDictionary = {'filename':filename, 'video':raw_data}
+            pythonDictionary = {'filename':filename, 'input_path': input_path}
             dictionaryToJson = json.dumps(pythonDictionary)
+            string = ("Trying to send video '%s' to rabbitmq" %filename)
             messenger.send_to_queue(dictionaryToJson)
-
-            # Delete input file
-            print("[local]\tDeleting input file " + input_file + "...")
-            os.remove(input_path)
-
             return redirect(url_for('done'))
+
     return render_template('upload.html')
     
 

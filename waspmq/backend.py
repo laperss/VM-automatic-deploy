@@ -38,32 +38,27 @@ def receive(connection_info=None):
 def on_request(ch, method, props, body):
         jsonToPython = json.loads(body)
         filename = jsonToPython[u'filename']
+        input_path = jsonToPython[u'input_path']
         rnd_str = id_generator(filename)
         input_file_tmp =  '/home/ubuntu/tmp/' + rnd_str
         output_file_tmp =  '/home/ubuntu/tmp/output_' + rnd_str
-
-                
-        # DECODE VIDEO
-        videoString = jsonToPython[u'video']    
-        video = base64.b64decode(videoString)
-        print(" [.] Video received... %s" %filename)
-
-        filename, input_ext = os.path.splitext(filename)
-
-        with open(input_file_tmp, 'wb+') as f:
-                f.write(video)
-                                               
+        output_path = '/home/ubuntu/tmp/' + filename
+        # Transfer video file
+        os.system("scp -i /home/ubuntu/vm-key.pem " + " ubuntu@" + MASTER_IP + ":" + input_path+ " " + input_file_tmp +  " > /dev/null")
+        os.system("ls ~/tmp/")
+        print("[send]\tCopy file to master...")
+        
+        # filename, input_ext = os.path.splitext(filename)
+        
         print(" [.] Starting conversion... ")
         convert_video(input_file_tmp, output_file_tmp)
+        os.system("scp -i /home/ubuntu/vm-key.pem " +  output_file_tmp + " ubuntu@" + MASTER_IP + ":" + output_path + " > /dev/null")
+        
         os.remove(input_file_tmp)
-
-        with open(output_file_tmp, "rb") as file:
-                base64_string = base64.b64encode(file.read())
-                                                        
-        raw_data = {'video': base64_string}
-        pythonDictionary = {'filename':filename, 'video':raw_data}
+        print("done...")
+        pythonDictionary = {'filename':filename, 'output_path': output_path, 'success':True}
         dictionaryToJson = json.dumps(pythonDictionary)
-
+        
         print(" [.] Conversion finished." )
         os.remove(output_file_tmp)
         
@@ -71,9 +66,11 @@ def on_request(ch, method, props, body):
                          routing_key=props.reply_to,
                          properties=pika.BasicProperties(correlation_id=props.correlation_id),
                          body=dictionaryToJson)
-       
+        
         ch.basic_ack(delivery_tag = method.delivery_tag)
-
+        
+        
+        
 if __name__=="__main__":
         # CONNECT TO RABBITMQ TO RECIEVE FROM FRONTEND
         parser = OptionParser()
