@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os, requests, shutil, time, random, string
 from threading import Thread
+import datetime
 
 server = 'http://129.192.68.172:5000'
 testfile = "test.mkv"
@@ -18,8 +19,14 @@ def download_file():
         with open(testfile, "wb") as handle:
             shutil.copyfileobj(response.raw, handle)
 
+def log(string):
+    with open('log_clients.tsv', 'a', encoding='utf-8') as file:
+        time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        file.write(time + "\t" + string + "\n")
+
 # Simulate a user by submitting a convertion request
 def user(id):
+    log("request\t" + str(id))
     s = requests.session()
     print("[" + str(id) + "]" + "Upload file")
     response = s.post(server, files={'upload_file': open(testfile, 'rb')})
@@ -34,6 +41,7 @@ def user(id):
 
     print("[" + str(id) + "]" + "Remove file")
     os.remove(outputfile)
+    log("ack\t" + str(id))
 
 if __name__ == "__main__":
     download_file()
