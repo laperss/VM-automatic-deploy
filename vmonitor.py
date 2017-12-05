@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 import subprocess
 from collections import Counter
 import datetime
+import io
 
 BACKEND_SCRIPT = 'waspmq/backend.sh'
 FRONTEND_SCRIPT = 'waspmq/backend.sh'
@@ -28,6 +29,11 @@ connection_info["port"] = int(config.get('rabbit', 'port'))
 connection_info["queue"] = config.get('rabbit', 'queue')
 connection_info["username"]=config.get('rabbit', 'username')
 connection_info["password"]=config.get('rabbit', 'password')
+
+def log(string):
+    with open('log.tsv', 'a', encoding='utf-8') as file:
+        time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        file.write(time + "\t" + string + "\n")
 
 def id_generator(prefix, size=6):
     name = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in range(size))
@@ -50,11 +56,13 @@ def get_vms():
 
 def terminate_vm(name):
     """ Terminate a VM """
+    log("backend_terminate")
     print("Terminate " + name)
     manager.terminate(vm=name)
 
 def create_backend():
     """ Start a new VM """
+    log("backend_create")
     print("Create backend")
     name = id_generator('backend')
     manager.start_script = BACKEND_SCRIPT
@@ -80,7 +88,9 @@ def get_load(user, host, key):
     top = """ top -b -n 1 | awk 'NR > 7 { sum += $9 } END { print sum }'"""
     cmd = ssh + user + "@" + host + " -i " + key + top
     try:
-        return float(subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT))
+        load = float(subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT))
+        log("load\t" + host + "\t" + str(load))
+        return load
     except ValueError:
         return 0
 
@@ -100,9 +110,9 @@ params = pika.ConnectionParameters(connection_info["server"],connection_info["po
 connection = pika.BlockingConnection(parameters=params)
 print("* Connection succeeded: ", connection.is_open)
 
-MEAS_SAMPLES = 3 # Number of measurements to take
-MEAS_SAMPLE_DELAY = 10 # Number of seconds per measurement
-MODIFY_TIMER = 300 # Number of seconds before next modification is allowed
+MEAS_SAMPLES = 10 # Number of measurements to take
+MEAS_SAMPLE_DELAY = 6 # Number of seconds per measurement
+MODIFY_TIMER = 600 # Number of seconds before next modification is allowed
 
 MODIFY_TIMER_ITERATIONS = int(MODIFY_TIMER / (MEAS_SAMPLES * MEAS_SAMPLE_DELAY))
 
@@ -140,6 +150,7 @@ try:
         # Average loads
         for ip in loads:
             loads[ip] /= MEAS_SAMPLES
+            log("avgload\t" + ip + "\t" + str(loads[ip]))
 
         print("Avg load: ", ' '.join('{}'.format(load) for load in loads.values()))
 
@@ -149,7 +160,7 @@ try:
             modify_timer = MODIFY_TIMER_ITERATIONS
 
         # Scale down
-        if any(load < 20 for load in loads.values()) and modify_timer == 0 and len(vms['backend']) >= 1:
+        if any(load < 20 for load in loads.values()) and modify_timer == 0 and len(vms['backend']) > 1:
             for ip, load in loads.items():
                 if load < 20:
                     terminate_vm(get_name(ip))
