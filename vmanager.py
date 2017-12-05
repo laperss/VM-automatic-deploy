@@ -24,8 +24,8 @@ with open(TEMP_BACKEND_SCRIPT, 'a') as temp_file, open(KEY_FILE, 'r') as key_fil
     for line in key_file:
         temp_file.write(line)
     temp_file.write('" >> /home/ubuntu/vm-key.pem\n')
-                            
-
+    temp_file.write('sudo chmod 600 ~/vm-key.pem\n')
+    temp_file.write('sudo python /usr/local/WASP/backend.py -c credentials.txt\n')
 class Manager:
     DEFAULT_IMAGE = "ubuntu 16.04"
     DEFAULT_FLAVOUR = "c2m2"
