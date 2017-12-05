@@ -70,11 +70,11 @@ def create_rabbitmq():
     manager.start_script = RABBITMQ_SCRIPT
     manager.create(name=name)
 
-
-# TODO: HOW TO MEASURE LOAD? 
-def get_load():
+def get_load(user, host, key):
     """ Function for estimating the current demands on the application """
-    return 0
+    top = """ top -b -n 1 | awk 'NR > 7 { sum += $9 } END { print sum }'"""
+    cmd = "ssh " + user + "@" + host + " -i " + key + top
+    return float(subprocess.check_output(cmd, shell=True))
 
 print("* Start up the manager...")
 manager = vmanager.Manager()
