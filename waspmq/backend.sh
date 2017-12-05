@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # export RabbitMQ IP
-export mqIP=192.168.50.16
+export mqIP=192.168.50.13
 
 # set hostname 
 sudo echo waspmq-backend > /etc/hostname
@@ -23,6 +23,9 @@ wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/waspmq
 
 echo "Update the server IP adress"
 sed -i 's/server=.*/server='$mqIP'/' credentials.txt
+
+sudo apt-get install -y mencoder 
+mkdir ~/tmp
 
 # start backend
 echo "Run backend"
