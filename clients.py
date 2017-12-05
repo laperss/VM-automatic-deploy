@@ -22,11 +22,11 @@ def download_file():
 def user(id):
     s = requests.session()
     print("[" + str(id) + "]" + "Upload file")
-    response = s.post(server, files={'file': open(testfile, 'rb')})
+    response = s.post(server, files={'upload_file': open(testfile, 'rb')})
     #print(response)
 
     print("[" + str(id) + "]" + "Download converted file")
-    response = s.get(server + '/file', stream=True)
+    response = s.get(server + '/download_file', stream=True)
     #print(response)
     outputfile = "output_%s.avi" % random_string()
     with open(outputfile, "wb") as handle:
