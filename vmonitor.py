@@ -31,7 +31,7 @@ connection_info["username"]=config.get('rabbit', 'username')
 connection_info["password"]=config.get('rabbit', 'password')
 
 def log(string):
-    with open('log.tsv', 'a', encoding='utf-8') as file:
+    with open('log_monitor.tsv', 'a', encoding='utf-8') as file:
         time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         file.write(time + "\t" + string + "\n")
 
