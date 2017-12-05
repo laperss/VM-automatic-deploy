@@ -26,7 +26,8 @@ def receive(connection_info=None):
         channel.basic_consume(on_request, queue=qname)
         print(' [*] Waiting for messages. To exit press CTRL+C')
         channel.start_consuming()
-
+        
+MASTER_IP = '192.168.50.15'
 def on_request(ch, method, props, body):
         input_path = body #jsonToPython[u'input_path']
         [_, filename] = os.path.split(input_path)
@@ -37,9 +38,6 @@ def on_request(ch, method, props, body):
 
         # Transfer video file
         os.system("scp -i /home/ubuntu/vm-key.pem " + " ubuntu@" + MASTER_IP + ":" + input_path + " " + input_file_tmp +  " > /dev/null")
-
-        # filename, input_ext = os.path.splitext(filename)
-
         print(" [.] Starting conversion... ")
         convert_video(input_file_tmp, output_file_tmp)
         os.remove(input_file_tmp)
@@ -55,7 +53,6 @@ def on_request(ch, method, props, body):
         
         ch.basic_ack(delivery_tag = method.delivery_tag)
         
-          
 if __name__=="__main__":
         # CONNECT TO RABBITMQ TO RECIEVE FROM FRONTEND
         parser = OptionParser()
