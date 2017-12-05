@@ -6,6 +6,13 @@ import ConfigParser
 import base64 
 import string
 import os
+import subprocess
+import json
+
+HOSTNAME = subprocess.check_output("hostname", shell=True)
+IP_ADDRESS = subprocess.check_output("ifconfig | grep  -m1 'inet addr:' | cut -d: -f2 | awk '{ print $1}'", shell=True)
+print "IP_ADDRESS =", IP_ADDRESS
+
 
 def callback(ch, method, properties, body):
         print(" [x] Received %r" % body)
@@ -31,10 +38,9 @@ MASTER_IP = '192.168.50.15'
 def on_request(ch, method, props, body):
         input_path = body #jsonToPython[u'input_path']
         [_, filename] = os.path.split(input_path)
-        output_path = '/home/ubuntu/tmp/output_' + filename
-
+        output_path = input_path.replace("input", "output")
         input_file_tmp =  '/home/ubuntu/tmp/' + filename
-        output_file_tmp =  '/home/ubuntu/tmp/output_' + filename
+        output_file_tmp = input_file_tmp.replace("input", "output")
 
         # Transfer video file
         os.system("scp -i /home/ubuntu/vm-key.pem " + " ubuntu@" + MASTER_IP + ":" + input_path + " " + input_file_tmp +  " > /dev/null")
@@ -43,20 +49,27 @@ def on_request(ch, method, props, body):
         os.remove(input_file_tmp)
         print(" [.] Conversion finished." )
 
-        os.system("scp -i /home/ubuntu/vm-key.pem " +  output_file_tmp + " ubuntu@" + MASTER_IP + ":" + output_path + " > /dev/null")
-        os.remove(output_file_tmp)
+        #os.system("scp -i /home/ubuntu/vm-key.pem " +  output_file_tmp + " ubuntu@" + MASTER_IP + ":" + output_path + " > /dev/null")
+        #os.remove(output_file_tmp)
+
+        output_dict = json.dumps({'filename':filename,
+                                  'output_path': output_path,
+                                  'hostname': HOSTNAME,
+                                  'ip_address': IP_ADDRESS,
+                                  'input_path': output_file_tmp})
 
         ch.basic_publish(exchange='',
                          routing_key=props.reply_to,
                          properties=pika.BasicProperties(correlation_id=props.correlation_id),
-                         body=output_path)
+                         body=output_dict)
         
         ch.basic_ack(delivery_tag = method.delivery_tag)
         
 if __name__=="__main__":
         # CONNECT TO RABBITMQ TO RECIEVE FROM FRONTEND
         parser = OptionParser()
-        parser.add_option('-c', '--credential', dest='credentialFile', help='Path to CREDENTIAL file', metavar='CREDENTIALFILE')
+        parser.add_option('-c', '--credential', dest='credentialFile',
+                          help='Path to CREDENTIAL file', metavar='CREDENTIALFILE')
         (options, args) = parser.parse_args()
         if options.credentialFile:
                 config = ConfigParser.RawConfigParser()

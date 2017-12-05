@@ -15,10 +15,33 @@ class Connection:
 
     def on_response(self, ch, method, props, body):
         if self.corr_id == props.correlation_id:
-            print("File recieved")
             self.response = body.decode('utf-8')
-            output_path = self.response
-            print(output_path)
+            print("File recieved")
+            try:
+                response_dict = json.loads(self.response)
+                output_path = response_dict['output_path']
+                hostname = response_dict['hostname'].replace('-', '_')
+                session['filename'] = response_dict['filename'].strip()
+                session['ip'] = response_dict['ip_address'].strip()
+                input_path_tmp = response_dict['input_path']
+                print("Download file locally from ", session['ip'])
+                session['input_path'] = response_dict['input_path']
+                os.system("scp -i /home/ubuntu/vm-key.pem" + " ubuntu@" + session["ip"] + ":"
+                          + input_path_tmp + " " + output_path +  " > /dev/null")
+                command = ('ssh -i /home/ubuntu/vm-key.pem ubuntu@' + session["ip"] +
+                           ' "sudo rm ' + input_path_tmp + '"')
+                host = 'ubuntu@' + session['ip']
+                print(command)
+                print(host)
+                subprocess.Popen(["ssh", "%s" % host, command],
+                                 shell=False,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+
+                print("Download complete")
+            except:
+                output_path = self.response
+
             input_path = output_path.replace("output", "input")
             os.remove(input_path)
             session['output_path'] = output_path
@@ -94,6 +117,10 @@ def done():
 def download_file():
     output_path = session['output_path']
     print("Download request: ", output_path)
+    if 'hostname' in session.keys():
+        hostname = session['hostname']
+        print("Download from host: ", hostname )
+
     _, output_ext = os.path.splitext(output_path)
     output_handle = open(output_path, 'r')
     @after_this_request
