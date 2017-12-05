@@ -17,8 +17,9 @@ class Connection:
         if self.corr_id == props.correlation_id:
             print("File recieved")
             self.response = body.decode('utf-8')
-            jsonToPython = json.loads(self.response)
-            output_path = jsonToPython['output_path']
+            output_path = self.response
+            input_path = output_path.replace("output", "input")
+            os.remove(input_path)
             session['output_path'] = output_path
             
     def send_to_queue(self, message="Hello!"):
@@ -33,8 +34,10 @@ class Connection:
                               queue=callback_queue)
         # Send message
         self.corr_id = str(uuid.uuid4())
+        print("ID: ", self.corr_id)
         channel.basic_publish(exchange='', routing_key=qname,
-                              properties=pika.BasicProperties(reply_to=callback_queue, correlation_id=self.corr_id),
+                              properties=pika.BasicProperties(reply_to=callback_queue,
+                                                              correlation_id=self.corr_id),
                               body=message)
         print(" [x] Sent video to RabbitMQ'")
         self.response = None
@@ -76,12 +79,9 @@ def main():
             input_file = "input_%s.mkv" % (random_str)
             input_path = os.path.join(app.config['UPLOAD_FOLDER'], input_file)
             input_.save(input_path)
-            pythonDictionary = {'filename':filename, 'input_path': input_path}
-            dictionaryToJson = json.dumps(pythonDictionary)
             string = ("Trying to send video '%s' to rabbitmq" %filename)
-            messenger.send_to_queue(dictionaryToJson)
+            messenger.send_to_queue(input_path)
             return redirect(url_for('done'))
-
     return render_template('upload.html')
     
 
@@ -92,6 +92,7 @@ def done():
 @app.route("/download_file", methods=['GET'])
 def download_file():
     output_path = session['output_path']
+    print("Download request: ", output_path)
     _, output_ext = os.path.splitext(output_path)
     output_handle = open(output_path, 'r')
     @after_this_request

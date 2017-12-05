@@ -9,6 +9,7 @@ import random
 import pika
 import configparser
 import vmanager
+from datetime import datetime, timedelta
 
 
 BACKEND_SCRIPT = 'waspmq/backend.sh'
@@ -69,6 +70,7 @@ def create_rabbitmq():
     manager.start_script = RABBITMQ_SCRIPT
     manager.create(name=name)
 
+
 # TODO: HOW TO MEASURE LOAD? 
 def get_load():
     """ Function for estimating the current demands on the application """
@@ -88,17 +90,25 @@ print("* Connect to queue")
 credentials = pika.PlainCredentials(connection_info["username"], connection_info["password"])
 params = pika.ConnectionParameters(connection_info["server"],connection_info["port"],'/', credentials)
 connection = pika.BlockingConnection(parameters=params)
-
 print("* Connection succeeded: ", connection.is_open)
-connection.add_on_connection_blocked_callback(create_backend)
-channel = connection.channel()
 
+
+#now = datetime.now()
+#later = now + timedelta(seconds=30)
+#manager.nova.usage.get('8c4adc91-0f26-4b1b-9f4f-4b0e1bd83c45', now, later)
+vms = get_vms()
+print(vms)
+print(vms['backend'])
+if (len(vms['backend']) < 1):
+    create_backend()
+
+    
 print("* Start monitoring...")
 i = 0
 try:
     while True:
         i += 1
-        print('Messages in queue %d' % channel.get_waiting_message_count())
+        #print('Messages in queue %d' % channel.get_waiting_message_count())
         vms = get_vms()
         if i == 2:
             demand = 0

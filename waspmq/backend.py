@@ -3,9 +3,7 @@ import time
 import pika
 from optparse import OptionParser
 import ConfigParser
-import json
 import base64 
-import random
 import string
 import os
 
@@ -17,12 +15,6 @@ def convert_video(source, dest):
         cmd = "mencoder %s -ovc lavc -lavcopts vcodec=mpeg4:vbitrate=3000 -oac copy -o %s >/dev/null 2>&1" % (source, dest)
         os.system(cmd)
 
-def id_generator(prefix, size=6):
-        name = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in range(size))
-        name = prefix + '_' + name
-        return name
-                                
-                    
 def receive(connection_info=None):
         qname = connection_info["queue"]
         print("qname: ", qname)
@@ -36,41 +28,34 @@ def receive(connection_info=None):
         channel.start_consuming()
 
 def on_request(ch, method, props, body):
-        jsonToPython = json.loads(body)
-        filename = jsonToPython[u'filename']
-        input_path = jsonToPython[u'input_path']
-        rnd_str = id_generator(filename)
-        input_file_tmp =  '/home/ubuntu/tmp/' + rnd_str
-        output_file_tmp =  '/home/ubuntu/tmp/output_' + rnd_str
-        output_path = '/home/ubuntu/tmp/' + filename
+        input_path = body #jsonToPython[u'input_path']
+        [_, filename] = os.path.split(input_path)
+        output_path = '/home/ubuntu/tmp/output_' + filename
+
+        input_file_tmp =  '/home/ubuntu/tmp/' + filename
+        output_file_tmp =  '/home/ubuntu/tmp/output_' + filename
+
         # Transfer video file
-        os.system("scp -i /home/ubuntu/vm-key.pem " + " ubuntu@" + MASTER_IP + ":" + input_path+ " " + input_file_tmp +  " > /dev/null")
-        os.system("ls ~/tmp/")
-        print("[send]\tCopy file to master...")
-        
+        os.system("scp -i /home/ubuntu/vm-key.pem " + " ubuntu@" + MASTER_IP + ":" + input_path + " " + input_file_tmp +  " > /dev/null")
+
         # filename, input_ext = os.path.splitext(filename)
-        
+
         print(" [.] Starting conversion... ")
         convert_video(input_file_tmp, output_file_tmp)
-        os.system("scp -i /home/ubuntu/vm-key.pem " +  output_file_tmp + " ubuntu@" + MASTER_IP + ":" + output_path + " > /dev/null")
-        
         os.remove(input_file_tmp)
-        print("done...")
-        pythonDictionary = {'filename':filename, 'output_path': output_path, 'success':True}
-        dictionaryToJson = json.dumps(pythonDictionary)
-        
         print(" [.] Conversion finished." )
+
+        os.system("scp -i /home/ubuntu/vm-key.pem " +  output_file_tmp + " ubuntu@" + MASTER_IP + ":" + output_path + " > /dev/null")
         os.remove(output_file_tmp)
-        
+
         ch.basic_publish(exchange='',
                          routing_key=props.reply_to,
                          properties=pika.BasicProperties(correlation_id=props.correlation_id),
-                         body=dictionaryToJson)
+                         body=output_path)
         
         ch.basic_ack(delivery_tag = method.delivery_tag)
         
-        
-        
+          
 if __name__=="__main__":
         # CONNECT TO RABBITMQ TO RECIEVE FROM FRONTEND
         parser = OptionParser()
