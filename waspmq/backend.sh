@@ -25,7 +25,7 @@ echo "Update the server IP adress"
 sed -i 's/server=.*/server='$mqIP'/' credentials.txt
 
 sudo apt-get install -y mencoder 
-mkdir ~/tmp
+mkdir /home/ubuntu/tmp
 
 # start backend
 echo "Run backend"
