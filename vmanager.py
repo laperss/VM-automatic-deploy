@@ -5,6 +5,26 @@ from novaclient.client import Client as NovaClient
 import datetime, sys, time
 from configparser import SafeConfigParser 
 from optparse import OptionParser
+import  tempfile,shutil,os
+
+KEY_FILE = "/home/ubuntu/vm-key.pem"
+BACKEND_SCRIPT = 'waspmq/backend.sh'
+
+def create_temporary_copy(path):
+    temp_dir = tempfile.gettempdir()
+    temp_path = os.path.join(temp_dir, 'temp_backend_script')
+    shutil.copy2(path, temp_path)
+    return temp_path
+
+TEMP_BACKEND_SCRIPT = create_temporary_copy(BACKEND_SCRIPT)
+
+with open(TEMP_BACKEND_SCRIPT, 'a') as temp_file, open(KEY_FILE, 'r') as key_file:
+    temp_file.write('\n')
+    temp_file.write('echo "')
+    for line in key_file:
+        temp_file.write(line)
+    temp_file.write('" >> /home/ubuntu/vm-key.pem\n')
+                            
 
 class Manager:
     DEFAULT_IMAGE = "ubuntu 16.04"
@@ -39,7 +59,7 @@ class Manager:
         net = self.nova.networks.find(label=self.net_id)
         nics = [{'net-id': net.id}]
         vm = self.nova.servers.create(name=name, image=image, flavor=flavor, key_name=self.pkey_id,
-                                      nics=nics, userdata=open(self.start_script))
+                                      nics=nics, userdata=open(TEMP_BACKEND_SCRIPT))
         return
 
     def assign_floating_IP(self, vm):
