@@ -10,7 +10,9 @@ import pika
 import configparser
 import vmanager
 from datetime import datetime, timedelta
-
+import subprocess
+from collections import Counter
+import datetime
 
 BACKEND_SCRIPT = 'waspmq/backend.sh'
 FRONTEND_SCRIPT = 'waspmq/backend.sh'
@@ -26,7 +28,6 @@ connection_info["port"] = int(config.get('rabbit', 'port'))
 connection_info["queue"] = config.get('rabbit', 'queue')
 connection_info["username"]=config.get('rabbit', 'username')
 connection_info["password"]=config.get('rabbit', 'password')
-
 
 def id_generator(prefix, size=6):
     name = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in range(size))
@@ -47,44 +48,51 @@ def get_vms():
                 vms['waspmq'] += [server.networks[NETWORK][0]]
     return vms
 
-# TODO: How to decide which VM to shut down?
 def terminate_vm(name):
     """ Terminate a VM """
+    print("Terminate " + name)
     manager.terminate(vm=name)
 
 def create_backend():
     """ Start a new VM """
+    print("Create backend")
     name = id_generator('backend')
     manager.start_script = BACKEND_SCRIPT
     manager.create(name=name)
 
 def create_frontend():
     """ Start a new VM """
+    print("Create frontend")
     name = id_generator('frontend')
     manager.start_script = FRONTEND_SCRIPT
     manager.create(name=name)
 
 def create_rabbitmq():
     """ Start a new VM """
+    print("Create rabbitmq")
     name = id_generator('rabbitmq')
     manager.start_script = RABBITMQ_SCRIPT
     manager.create(name=name)
 
 def get_load(user, host, key):
     """ Function for estimating the current demands on the application """
+    ssh = "ssh -o ConnectTimeout=2 -o BatchMode=yes -o StrictHostKeyChecking=no "
     top = """ top -b -n 1 | awk 'NR > 7 { sum += $9 } END { print sum }'"""
-    cmd = "ssh " + user + "@" + host + " -i " + key + top
-    return float(subprocess.check_output(cmd, shell=True))
+    cmd = ssh + user + "@" + host + " -i " + key + top
+    try:
+        return float(subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT))
+    except ValueError:
+        return 0
+
+def get_name(ip):
+    for server in manager.nova.servers.list():
+        if NETWORK in server.networks:
+            if server.networks[NETWORK][0] == ip:
+                return server.name
 
 print("* Start up the manager...")
 manager = vmanager.Manager()
 print("* Manager is up.")
-
-print("* Search for VMs...")
-vms = get_vms()
-for vm, ip in vms.items():
-    print(vm, ip)
-
 
 print("* Connect to queue")
 credentials = pika.PlainCredentials(connection_info["username"], connection_info["password"])
@@ -92,37 +100,63 @@ params = pika.ConnectionParameters(connection_info["server"],connection_info["po
 connection = pika.BlockingConnection(parameters=params)
 print("* Connection succeeded: ", connection.is_open)
 
+MEAS_SAMPLES = 3 # Number of measurements to take
+MEAS_SAMPLE_DELAY = 10 # Number of seconds per measurement
+MODIFY_TIMER = 300 # Number of seconds before next modification is allowed
 
-#now = datetime.now()
-#later = now + timedelta(seconds=30)
-#manager.nova.usage.get('8c4adc91-0f26-4b1b-9f4f-4b0e1bd83c45', now, later)
-vms = get_vms()
-print(vms)
-print(vms['backend'])
-if (len(vms['backend']) < 1):
-    create_backend()
+MODIFY_TIMER_ITERATIONS = int(MODIFY_TIMER / (MEAS_SAMPLES * MEAS_SAMPLE_DELAY))
 
-    
 print("* Start monitoring...")
-i = 0
+modify_timer = 0
 try:
     while True:
-        i += 1
-        #print('Messages in queue %d' % channel.get_waiting_message_count())
+        t1 = datetime.datetime.now()
         vms = get_vms()
-        if i == 2:
-            demand = 0
-        elif i == 5:
-            break
-        else: 
-            demand = get_load()
 
-        if demand > 0:
+        # Create backend if none exists
+        if (len(vms['backend']) < 1):
             create_backend()
-        elif demand < 0 and len(vms['backend'] >= 1):
-            terminate_vm()
+            modify_timer = MODIFY_TIMER_ITERATIONS
 
-        time.sleep(1)
+        # Obtain loads of backends over SSH
+        loads = {}
+        for niter in range(MEAS_SAMPLES):
+            t1 = datetime.datetime.now()
+            # Obtain loads from backends
+            for ip in vms['backend']:
+                if ip in loads:
+                    loads[ip] = loads[ip] + get_load("ubuntu", ip, "~/vm-key.pem")
+                else:
+                    loads[ip] = get_load("ubuntu", ip, "~/vm-key.pem")
+            # Delay until MEAS_DELAY seconds is reached
+            while True:
+                t2 = datetime.datetime.now()
+                delta = t2 - t1
+                if delta.seconds < MEAS_SAMPLE_DELAY:
+                    time.sleep(0.1)
+                else:
+                    break
+
+        # Average loads
+        for ip in loads:
+            loads[ip] /= MEAS_SAMPLES
+
+        print("Avg load: ", ' '.join('{}'.format(load) for load in loads.values()))
+
+        # Scale up
+        if all(load > 60 for load in loads.values()) and modify_timer == 0:
+            create_backend()
+            modify_timer = MODIFY_TIMER_ITERATIONS
+
+        # Scale down
+        if any(load < 20 for load in loads.values()) and modify_timer == 0 and len(vms['backend']) >= 1:
+            for ip, load in loads.items():
+                if load < 20:
+                    terminate_vm(get_name(ip))
+            modify_timer = 5 # Scaling down is fast, no need to wait long
+
+        if modify_timer > 0:
+            modify_timer -= 1
 
 except KeyboardInterrupt:
     print('Shutting down VM monitor...')
