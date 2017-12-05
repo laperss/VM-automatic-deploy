@@ -43,7 +43,9 @@ def on_request(ch, method, props, body):
         output_file_tmp = input_file_tmp.replace("input", "output")
 
         # Transfer video file
-        os.system("scp -i /home/ubuntu/vm-key.pem " + " ubuntu@" + MASTER_IP + ":" + input_path + " " + input_file_tmp +  " > /dev/null")
+        os.system("scp -i /home/ubuntu/vm-key.pem " + "-o StrictHostKeyChecking=no"
+                  + " ubuntu@" + MASTER_IP + ":" + input_path + " "
+                  + input_file_tmp +  " > /dev/null")
         print(" [.] Starting conversion... ")
         convert_video(input_file_tmp, output_file_tmp)
         os.remove(input_file_tmp)
