@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os, shlex, random, string, binascii, shutil, sys, time, uuid
-from flask import Flask, request, redirect, url_for, render_template, send_file, session
+from flask import Flask, request, redirect, url_for, render_template, send_file, session, after_this_request
 
 from subprocess import DEVNULL, STDOUT, call
 import pika, configparser
@@ -18,6 +18,7 @@ class Connection:
             print("File recieved")
             self.response = body.decode('utf-8')
             output_path = self.response
+            print(output_path)
             input_path = output_path.replace("output", "input")
             os.remove(input_path)
             session['output_path'] = output_path
