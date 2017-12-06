@@ -8,7 +8,7 @@ from optparse import OptionParser
 import  tempfile,shutil,os
 
 KEY_FILE = "/home/ubuntu/vm-key.pem"
-BACKEND_SCRIPT = 'waspmq/backend.sh'
+BACKEND_SCRIPT = 'home/ubuntu/VM-automatic-deploy/waspmq/backend.sh'
     
 class Manager:
     DEFAULT_IMAGE = "ubuntu 16.04"
@@ -18,7 +18,7 @@ class Manager:
 
         parser = SafeConfigParser()
         try:
-            parser.read("credentials.txt")
+            parser.read("/home/ubuntu/VM-automatic-deploy/credentials.txt")
         except IOError:
             print("Credential file missing")
             sys.exit()
@@ -83,16 +83,19 @@ class Manager:
     def get_IPs(self):
         ip_list=self.nova.floating_ips.list()
         for ip in ip_list:
-          #if ip.instance_id
             print("fixed_ip : %s\n" % ip.fixed_ip)
             print("ip : %s" % ip.ip)
             print("instance_id : %s" % ip.instance_id)
-        #return {"Floating":ip.ip, "Fixed":ip.fixed_ip}
 
     def get_IP(self, vm):
-      instance = self.nova.servers.find(name=vm)
-      ip = instance.networks[self.net_id][0] #("ipaddress:"+ip);
-      return ip
+        instance = self.nova.servers.find(name=vm)
+        ip = instance.networks[self.net_id][0] 
+        return ip
+
+    def show_IP(self, vm):
+        instance = self.nova.servers.find(name=vm)
+        ip = instance.networks[self.net_id][0] 
+        print(ip)
   
     def describe(self, vm):
         instance = self.nova.servers.find(name=vm)
