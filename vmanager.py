@@ -8,7 +8,7 @@ from optparse import OptionParser
 import  tempfile,shutil,os
 
 KEY_FILE = "/home/ubuntu/vm-key.pem"
-BACKEND_SCRIPT = 'home/ubuntu/VM-automatic-deploy/waspmq/backend.sh'
+BACKEND_SCRIPT = '/home/ubuntu/VM-automatic-deploy/waspmq/backend.sh'
     
 class Manager:
     DEFAULT_IMAGE = "ubuntu 16.04"
