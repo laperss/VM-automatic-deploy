@@ -1,20 +1,16 @@
 # Xerces Cloud Application
-Course in software development, module on cloud computing. 
-The goal is to take input videos and convert them to an output video.
-The service must be scaleable and robust.
+This is a cloud application for robust video conversion. The application takes input videos and convert them to output videos of desired format. For scalability and robustness, the cloud service scales with usage. 
 
-## Access cloud service
-- Private: 
-https://129.192.68.4/
+The cloud service is managed from: https://129.192.68.4/
 
-## Automatic VM Deployment
-We use Python and NovaStack to automaticly deploy VMs. The monitor checks how the resources are being used, and creates/deletes VMs as demanded.  
+We use Python and [Openstack nova](https://docs.openstack.org/nova/pike/) for automatic deployment of VMs. 
+This is done from the [monitor](vmonitor.py) checks how the resources are being used, and creates/deletes VMs as demanded. 
 
-## Run frontend 
+### Run application 
+```
 python3 frontend_local.py -c waspmq/credentials_local.txt
-
-## Run the monitor
 python3 monitor.py
+```
 
 ## Dependencies
 ```bash
