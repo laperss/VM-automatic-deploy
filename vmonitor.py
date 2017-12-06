@@ -100,6 +100,22 @@ def get_name(ip):
             if server.networks[NETWORK][0] == ip:
                 return server.name
 
+def check_running(user, host, key):
+    ssh = "ssh -o ConnectTimeout=2 -o BatchMode=yes -o StrictHostKeyChecking=no "
+    ps = " \" ps -ef | grep '[b]ackend.py' \""
+    cmd = ssh + user + "@" + host + " -i " + key + ps
+
+    if subprocess.call(cmd, shell=True, stdout=subprocess.DEVNULL) == 0:
+        return True
+    else:
+        return False
+
+def start_backend_script(user, host, key):
+    ssh = "ssh -o ConnectTimeout=2 -o BatchMode=yes -o StrictHostKeyChecking=no "
+    script = " \" sudo python /usr/local/WASP/backend.py -c /usr/local/WASP/credentials.txt & \""
+    cmd = ssh + user + "@" + host + " -i " + key + script
+    subprocess.Popen(cmd, shell=True)
+
 print("* Start up the manager...")
 manager = vmanager.Manager()
 print("* Manager is up.")
@@ -171,6 +187,11 @@ try:
 
         if modify_timer > 0:
             modify_timer -= 1
+
+        # Make sure scripts are running on VM
+        for ip in vms['backend']:
+            if not check_running("ubuntu", ip, "~/vm-key.pem"):
+                start_backend_script("ubuntu", ip, "~/vm-key.pem")
 
 except KeyboardInterrupt:
     print('Shutting down VM monitor...')
