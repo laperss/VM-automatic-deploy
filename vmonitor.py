@@ -88,11 +88,11 @@ def get_load(user, host, key):
     top = """ top -b -n 1 | awk 'NR > 7 { sum += $9 } END { print sum }'"""
     cmd = ssh + user + "@" + host + " -i " + key + top
     try:
-        load = float(subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT))
+        load = float(subprocess.check_output(cmd, shell=True))
         log("load\t" + host + "\t" + str(load))
         return load
     except ValueError:
-        return 0
+        return -1
 
 def get_name(ip):
     for server in manager.nova.servers.list():
@@ -153,6 +153,8 @@ try:
             log("avgload\t" + ip + "\t" + str(loads[ip]))
 
         print("Avg load: ", ' '.join('{}'.format(load) for load in loads.values()))
+
+        log("number_backends\t" + str(len(vms['backend'])))
 
         # Scale up
         if all(load > 60 for load in loads.values()) and modify_timer == 0:
