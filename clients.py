@@ -60,7 +60,6 @@ if __name__ == "__main__":
         userthread.start()
         
         # Sleep for a period of time
-        print("wait:", wait)
         time.sleep(wait)
         userid += 1
         
