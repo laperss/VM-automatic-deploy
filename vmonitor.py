@@ -6,29 +6,22 @@ from __future__ import print_function
 import time
 import string
 import random
-import pika
-import configparser
 import vmanager
-from datetime import datetime, timedelta
 import subprocess
-from collections import Counter
 import datetime
 import io
+from collections import Counter
 
 BACKEND_SCRIPT = 'VM-deploy-scripts/backend.sh'
-FRONTEND_SCRIPT = 'VM-deploy-scripts/backend.sh'
 RABBITMQ_SCRIPT = 'VM-deploy-scripts/waspmq.sh'
 
 NETWORK = 'sw_network'
 
-config = configparser.RawConfigParser()
-config.read('VM-deploy-scripts/credentials.txt')
-connection_info = {}
-connection_info["server"] = '192.168.50.13' #config.get('rabbit', 'server')
-connection_info["port"] = int(config.get('rabbit', 'port'))
-connection_info["queue"] = config.get('rabbit', 'queue')
-connection_info["username"]=config.get('rabbit', 'username')
-connection_info["password"]=config.get('rabbit', 'password')
+MEAS_SAMPLES = 10 # Number of measurements to take
+MEAS_SAMPLE_DELAY = 6 # Number of seconds per measurement
+MODIFY_TIMER = 600 # Number of seconds before next modification is allowed
+MODIFY_TIMER_ITERATIONS = int(MODIFY_TIMER / (MEAS_SAMPLES * MEAS_SAMPLE_DELAY))
+
 
 def log(string):
     with open('log_monitor.tsv', 'a', encoding='utf-8') as file:
@@ -39,7 +32,7 @@ def id_generator(prefix, size=6):
     name = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in range(size))
     name = prefix + '_' + name
     return name
-    
+
 def get_vms():
     """ Get a dict with all VMs in the network """
     #vms = manager.list()
@@ -118,19 +111,6 @@ def start_backend_script(user, host, key):
 
 print("* Start up the manager...")
 manager = vmanager.Manager()
-print("* Manager is up.")
-
-print("* Connect to queue")
-credentials = pika.PlainCredentials(connection_info["username"], connection_info["password"])
-params = pika.ConnectionParameters(connection_info["server"],connection_info["port"],'/', credentials)
-connection = pika.BlockingConnection(parameters=params)
-print("* Connection succeeded: ", connection.is_open)
-
-MEAS_SAMPLES = 10 # Number of measurements to take
-MEAS_SAMPLE_DELAY = 6 # Number of seconds per measurement
-MODIFY_TIMER = 600 # Number of seconds before next modification is allowed
-
-MODIFY_TIMER_ITERATIONS = int(MODIFY_TIMER / (MEAS_SAMPLES * MEAS_SAMPLE_DELAY))
 
 print("* Start monitoring...")
 modify_timer = 0
@@ -196,4 +176,4 @@ try:
                 start_backend_script("ubuntu", ip, "~/vm-key.pem")
 
 except KeyboardInterrupt:
-    print('Shutting down VM monitor...')
+    print('* Shutting down VM monitor...')
