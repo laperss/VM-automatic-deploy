@@ -25,8 +25,16 @@ def convert_video(source, dest):
 def receive(connection_info=None):
         qname = connection_info["queue"]
         print("qname: ", qname)
-        credentials = pika.PlainCredentials(connection_info["username"], connection_info["password"])
-        connection = pika.BlockingConnection(pika.ConnectionParameters(connection_info["server"],connection_info["port"],'/',credentials))
+        print("connection_info['server']= ", connection_info["server"])
+        print("connection_info['port']= ", connection_info["port"])
+
+        credentials = pika.PlainCredentials(connection_info["username"],
+                                            connection_info["password"])
+        print("username: ", connection_info["username"])
+        print("pw: ", connection_info["password"])
+        connection = pika.BlockingConnection(pika.ConnectionParameters(connection_info["server"],
+                                                                       connection_info["port"],'/',
+                                                                       credentials))
         channel = connection.channel()
         channel.queue_declare(queue=qname)
         channel.basic_qos(prefetch_count=1)
