@@ -28,5 +28,5 @@ sudo apt-get install -y mencoder
 mkdir /home/ubuntu/tmp
 
 # start backend
-echo "Run backend"
-python backend.py -c credentials.txt 
+#echo "Run backend"
+#python backend.py -c credentials.txt 
