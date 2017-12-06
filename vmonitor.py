@@ -15,14 +15,14 @@ from collections import Counter
 import datetime
 import io
 
-BACKEND_SCRIPT = 'waspmq/backend.sh'
-FRONTEND_SCRIPT = 'waspmq/backend.sh'
-RABBITMQ_SCRIPT = 'waspmq/waspmq.sh'
+BACKEND_SCRIPT = 'VM-deploy-scripts/backend.sh'
+FRONTEND_SCRIPT = 'VM-deploy-scripts/backend.sh'
+RABBITMQ_SCRIPT = 'VM-deploy-scripts/waspmq.sh'
 
 NETWORK = 'sw_network'
 
 config = configparser.RawConfigParser()
-config.read('waspmq/credentials.txt')
+config.read('VM-deploy-scripts/credentials.txt')
 connection_info = {}
 connection_info["server"] = '192.168.50.13' #config.get('rabbit', 'server')
 connection_info["port"] = int(config.get('rabbit', 'port'))

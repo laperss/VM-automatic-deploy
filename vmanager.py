@@ -8,7 +8,7 @@ from optparse import OptionParser
 import  tempfile,shutil,os
 
 KEY_FILE = "/home/ubuntu/vm-key.pem"
-BACKEND_SCRIPT = '/home/ubuntu/VM-automatic-deploy/waspmq/backend.sh'
+BACKEND_SCRIPT = '/home/ubuntu/VM-automatic-deploy/VM-deploy-scripts/backend.sh'
     
 class Manager:
     DEFAULT_IMAGE = "ubuntu 16.04"
@@ -158,6 +158,6 @@ if __name__=="__main__":
     if options.action == "describe":
         manager.describe(vm=args[0])
     if options.action == "show-ip":
-        manager.get_IP(vm=args[0])
+        manager.show_IP(vm=args[0])
     if options.action == "assign-fip":
         manager.assign_floating_IP(vm=args[0])
