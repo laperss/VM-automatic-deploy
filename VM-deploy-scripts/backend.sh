@@ -18,8 +18,8 @@ mkdir -p /usr/local/WASP
 cd /usr/local/WASP
 
 # echo "Cloning code and credentials into backend VM"
-wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/waspmq/backend.py
-wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/waspmq/credentials.txt
+wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/VM-deploy-scripts/backend.py
+wget https://raw.githubusercontent.com/laperss/VM-automatic-deploy/master/VM-deploy-scripts/credentials.txt
 
 echo "Update the server IP adress"
 sed -i 's/server=.*/server='$mqIP'/' credentials.txt
@@ -27,6 +27,3 @@ sed -i 's/server=.*/server='$mqIP'/' credentials.txt
 sudo apt-get install -y mencoder 
 mkdir /home/ubuntu/tmp
 
-# start backend
-#echo "Run backend"
-#python backend.py -c credentials.txt 
