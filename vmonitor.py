@@ -166,6 +166,7 @@ try:
             for ip, load in loads.items():
                 if load < 20:
                     terminate_vm(get_name(ip))
+                    break
             modify_timer = 5 # Scaling down is fast, no need to wait long
 
         if modify_timer > 0:
