@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
 import os, shlex, random, string, binascii, shutil, sys, time, uuid
+import subprocess
 from flask import Flask, request, redirect, url_for, render_template, send_file, session, after_this_request
-
 from subprocess import DEVNULL, STDOUT, call
 import pika, configparser
 from optparse import OptionParser
 import json
 from base64 import b64encode, b64decode, decodestring
+
+# The allowed video extensions for conversion
+ALLOWED_EXTENSIONS = set(['mkv', 'mp4'])
+
+IP_ADDRESS = subprocess.check_output("ifconfig | grep  -m1 'inet addr:' | cut -d: -f2 | awk '{ print $1}'", shell=True)
+
+print("Look for IP address of queue...")
+QUEUE_ADDRESS = subprocess.check_output("python3 /home/ubuntu/VM-automatic-deploy/vmanager.py --action show-ip waspmq", shell=True).decode('utf-8')
+print("RabbitMQ address: ", QUEUE_ADDRESS)
 
 class Connection:
     def __init__(self, connection_info=None):
@@ -76,7 +85,6 @@ class Connection:
         return str(self.response)
 
 
-ALLOWED_EXTENSIONS = set(['mkv', 'mp4'])
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = '/home/ubuntu/tmp'
@@ -137,7 +145,7 @@ def download_file():
     return send_file(output_path,  attachment_filename='converted_file%s' % output_ext, as_attachment=True)
 
 if __name__ == "__main__":
-    # CONNECT TO BACKEND VIA RABBITMQ VM
+    # Connect to rabbitmq
     parser = OptionParser()
     parser.add_option('-c', '--credential', dest='credentialFile',
                       help='Path to CREDENTIAL file', metavar='CREDENTIALFILE')
@@ -146,11 +154,13 @@ if __name__ == "__main__":
         config = configparser.RawConfigParser()
         config.read(options.credentialFile)
         connection = {}
-        connection["server"] = config.get('rabbit', 'server')
+        connection["server"] = QUEUE_ADDRESS
         connection["port"] = int(config.get('rabbit', 'port'))
         connection["queue"] = config.get('rabbit', 'queue')
         connection["username"]=config.get('rabbit', 'username')
         connection["password"]=config.get('rabbit', 'password')
         messenger = Connection(connection_info=connection)
-    # RUN APPLICATION ONLINE
+    else:
+        print("No credentials file was given")
+
     app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
