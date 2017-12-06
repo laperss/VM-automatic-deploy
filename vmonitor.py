@@ -191,6 +191,7 @@ try:
         # Make sure scripts are running on VM
         for ip in vms['backend']:
             if not check_running("ubuntu", ip, "~/vm-key.pem"):
+                print("Script not running, starting it up")
                 start_backend_script("ubuntu", ip, "~/vm-key.pem")
 
 except KeyboardInterrupt:
