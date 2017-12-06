@@ -9,26 +9,6 @@ import  tempfile,shutil,os
 
 KEY_FILE = "/home/ubuntu/vm-key.pem"
 BACKEND_SCRIPT = 'waspmq/backend.sh'
-
-def create_temporary_copy(path):
-    temp_dir = tempfile.gettempdir()
-    temp_path = os.path.join(temp_dir, 'temp_backend_script')
-    shutil.copy2(path, temp_path)
-    return temp_path
-
-TEMP_BACKEND_SCRIPT = create_temporary_copy(BACKEND_SCRIPT)
-
-with open(TEMP_BACKEND_SCRIPT, 'a') as temp_file, open(KEY_FILE, 'r') as key_file:
-    temp_file.write('\n')
-    temp_file.write('echo "')
-    for line in key_file:
-        temp_file.write(line)
-    temp_file.write('echo "Change permissions of key"\n')
-    temp_file.write('" >> /home/ubuntu/vm-key.pem\n')
-    temp_file.write('sudo chmod 600 /home/ubuntu/vm-key.pem\n')
-    temp_file.write('ls /home/ubuntu/vm-key.pem -l')
-    temp_file.write('echo "Start the Python Script"\n')
-    temp_file.write('sudo python /usr/local/WASP/backend.py -c /usr/local/WASP/credentials.txt\n')
     
 class Manager:
     DEFAULT_IMAGE = "ubuntu 16.04"
@@ -62,8 +42,15 @@ class Manager:
         flavor = self.nova.flavors.find(name=Manager.DEFAULT_FLAVOUR)
         net = self.nova.networks.find(label=self.net_id)
         nics = [{'net-id': net.id}]
+        hostname = name.lower().replace('_','-')
+        script = self.create_temporary_startup_script(BACKEND_SCRIPT,KEY_FILE, hostname)
+
+        with open(script,'r') as f:
+            print(f.read())
+
+        
         vm = self.nova.servers.create(name=name, image=image, flavor=flavor, key_name=self.pkey_id,
-                                      nics=nics, userdata=open(TEMP_BACKEND_SCRIPT))
+                                      nics=nics, userdata=open(script))
         return
 
     def assign_floating_IP(self, vm):
@@ -116,8 +103,34 @@ class Manager:
         print("server key name: %s\n" % instance.key_name)
         print("user_id: %s\n" % instance.user_id)
 
-#    def shutdown(self, vm=""):
-#        pass
+    def create_temporary_startup_script(self, script_path, key, name):
+        temp_dir = tempfile.gettempdir()
+        temp_backend_script = os.path.join(temp_dir, 'temp_backend_script')
+        startup_script = os.path.join(temp_dir, 'temp_startup_script_' + name)
+        #startup_script = "/home/ubuntu/VM-automatic-deploy/waspmq/backend_startup.sh"
+        shutil.copy2(script_path, temp_backend_script)
+        with open(temp_backend_script, 'r') as init_file, open(startup_script,'w') as edit_file:
+            line = init_file.readline()
+            while line:
+                edit_file.write(line.replace('waspmq-backend',name))
+                line = init_file.readline()
+        with open(startup_script, 'a') as temp_file, open(key, 'r') as key_file:
+            temp_file.write('\n')
+            temp_file.write('echo "')
+            for line in key_file:
+                temp_file.write(line)
+            temp_file.write('" >> /home/ubuntu/vm-key.pem\n\n')
+            temp_file.write('echo "Change permissions of key"\n')
+            temp_file.write('sudo chmod 600 /home/ubuntu/vm-key.pem\n')
+            temp_file.write('sudo ls /home/ubuntu/vm-key.pem -l\n')
+            temp_file.write('echo "Start the Python Script"\n')
+            temp_file.write('sleep 5\n')
+            temp_file.write('sudo python /usr/local/WASP/backend.py -c /usr/local/WASP/credentials.txt\n')
+
+
+        return startup_script
+        
+
 
 if __name__=="__main__":
     parser = OptionParser()
@@ -127,6 +140,7 @@ if __name__=="__main__":
     (options, args) = parser.parse_args()
     if options.action:
         manager = Manager(start_script=options.initFile)
+        manager.create_temporary_startup_script(BACKEND_SCRIPT,KEY_FILE, 'name')
     else:
         print("Syntax: 'python vmanager.py -h' | '--help' for help")
     if options.action == "list":
