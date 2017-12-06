@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-import os, shlex, random, string, binascii, shutil, sys, time, uuid
+import os, random, string, binascii, time, uuid
 import subprocess
+import pika
+import configparser
+import json
 from flask import Flask, request, redirect, url_for, render_template, send_file, session, after_this_request
 from subprocess import DEVNULL, STDOUT, call
-import pika, configparser
 from optparse import OptionParser
-import json
-from base64 import b64encode, b64decode, decodestring
 
 # The allowed video extensions for conversion
 ALLOWED_EXTENSIONS = set(['mkv', 'mp4'])
@@ -26,6 +26,7 @@ class Connection:
         if self.corr_id == props.correlation_id:
             self.response = body.decode('utf-8')
             print("File recieved")
+            # Try to convert JSON data
             try:
                 response_dict = json.loads(self.response)
                 output_path = response_dict['output_path']
@@ -37,26 +38,28 @@ class Connection:
                 session['input_path'] = response_dict['input_path']
                 os.system("scp -i /home/ubuntu/vm-key.pem" + " ubuntu@" + session["ip"] + ":"
                           + input_path_tmp + " " + output_path +  " > /dev/null")
-                #command = ('ssh -i /home/ubuntu/vm-key.pem ubuntu@' + session["ip"] +
-                #           ' "sudo rm ' + input_path_tmp + '"')
-                #host = 'ubuntu@' + session['ip']
-                #print(command)
-                #print(host)
-                #subprocess.Popen(["ssh", "%s" % host, command],
-                #                 shell=False,
-                #                 stdout=subprocess.PIPE,
-                #                 stderr=subprocess.PIPE)
-
                 print("Download complete")
             except:
                 output_path = self.response
-
+            # Try to remove the file saved in the backend
+            try:
+                command = ('ssh -i /home/ubuntu/vm-key.pem ubuntu@' + session["ip"] +
+                           ' "sudo rm ' + input_path_tmp + '"')
+                host = 'ubuntu@' + session['ip']
+                print(command)
+                print(host)
+                subprocess.Popen(["ssh", "%s" % host, command],
+                                 shell=False,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            except:
+                    pass
             input_path = output_path.replace("output", "input")
+            # Try to remove the input file
             try:
                 os.remove(input_path)
             except:
                 pass
-
             session['output_path'] = output_path
             
     def send_to_queue(self, message="Hello!"):
