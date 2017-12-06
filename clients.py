@@ -47,13 +47,31 @@ if __name__ == "__main__":
     download_file()
 
     # Randomly generate users
+    switch = 0
     userid = 0
+    wait_threshold = 60
+    increments = 1
+
+    wait = wait_threshold
     while True:
         # Spawn thread
         userthread = Thread(target=user, args=(userid,))
         userthread.setDaemon(True)
         userthread.start()
         
-        # Sleep for a random time
-        time.sleep(random.randint(0, 25))
+        # Sleep for a period of time
+        print("wait:", wait)
+        time.sleep(wait)
         userid += 1
+        
+        # Vary sleeping period periodically
+        if wait > 0 and not switch:
+            wait -= increments
+        elif wait > wait_threshold - 1:
+            switch = 0
+            wait -= increments
+        elif switch:
+            wait += increments
+        else:
+            switch = 1
+            wait += increments
