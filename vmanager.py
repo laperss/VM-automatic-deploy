@@ -25,8 +25,8 @@ with open(TEMP_BACKEND_SCRIPT, 'a') as temp_file, open(KEY_FILE, 'r') as key_fil
         temp_file.write(line)
     temp_file.write('echo "Change permissions of key"\n')
     temp_file.write('" >> /home/ubuntu/vm-key.pem\n')
-    temp_file.write('sudo chmod 600 ~/vm-key.pem\n')
-    temp_file.write('ls ~/vm-key.pem -l')
+    temp_file.write('sudo chmod 600 /home/ubuntu/vm-key.pem\n')
+    temp_file.write('ls /home/ubuntu/vm-key.pem -l')
     temp_file.write('echo "Start the Python Script"\n')
     temp_file.write('sudo python /usr/local/WASP/backend.py -c /usr/local/WASP/credentials.txt\n')
     
