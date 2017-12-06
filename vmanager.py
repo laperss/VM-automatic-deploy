@@ -104,8 +104,9 @@ class Manager:
 
     def get_IP(self, vm):
       instance = self.nova.servers.find(name=vm)
-      print(instance.networks[self.net_id][0]) #("ipaddress:"+ip);
-      
+      ip = instance.networks[self.net_id][0] #("ipaddress:"+ip);
+      return ip
+  
     def describe(self, vm):
         instance = self.nova.servers.find(name=vm)
         print("server id: %s\n" % instance.id)
