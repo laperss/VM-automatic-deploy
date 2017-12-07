@@ -1,4 +1,4 @@
-# Xerces Cloud Application
+# Scalable Cloud Video Application
 This is a cloud application for robust video conversion. The application takes input videos and convert them to output videos of another size. For scalability and robustness, the cloud service scales with usage and is robust to backend failures.
 
 ## Run application 
