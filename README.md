@@ -25,7 +25,7 @@ The queue runs on a separate VM called "waspmq". The queue transfers information
 ### Backends
 Every backend is connected to the RabbitMQ. Upon request, the backend will receive a JSON object containing information about the video to be converted. The video is then converted using [MEncoder](https://help.ubuntu.com/community/MEncoder).
 
-### Load Generator (clients.py)
+### Load Generator ([clients.py](clients.py))
 To simulate a realistic load and to test the scaling of the system a load generator is used. The load generator perodically increases and decreases the number of convertion requests per minute.
 
 ### Monitor ([vmonitor.py](vmanager.py))
