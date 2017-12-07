@@ -1,7 +1,8 @@
 # Xerces Cloud Application
-This is a cloud application for robust video conversion. The application takes input videos and convert them to output videos of lower quality. For scalability and robustness, the cloud service scales with usage and is robust to backend failures.
+This is a cloud application for robust video conversion. The application takes input videos and convert them to output videos of another size. For scalability and robustness, the cloud service scales with usage and is robust to backend failures.
 
 ## Run application 
+The application is run from one "master vm". This VM must be accesable from internet via a floating IP. 
 ```
 python3 frontend_local.py -c waspmq/credentials_local.txt
 python3 monitor.py
