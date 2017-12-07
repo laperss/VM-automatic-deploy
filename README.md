@@ -3,11 +3,11 @@ This is a cloud application for robust video conversion. The application takes i
 
 ## Run application 
 The application is run from one "master vm". This VM must be accesable from internet via a floating IP. The frontend is started from the frondend folder:
-```
+```bash
 python3 frontend.py -c credentials.txt
 ```
 The monitor is started using: 
-```
+```bash
 python3 monitor.py
 ```
 
