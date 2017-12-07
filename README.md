@@ -19,8 +19,11 @@ $ sudo pip install python-swiftclient
 The different components of the system are designed in a modular fashion, where each component has a specified task. The different components in the system are discussed below.
 
 ### Rabbitmq
+For distribution of the load, we use [RabbitMQ](http://www.rabbitmq.com/) and [Pika](https://pika.readthedocs.io/en/0.10.0/). 
+The queue runs on a separate VM called "waspmq". The queue transfers information about the address and name of the video file to be downloaded and transformed. 
 
 ### Backends
+Every backend is connected to the RabbitMQ. Upon request, the backend will receive a JSON object containing information about the video to be converted. The video is then converted using [MEncoder](https://help.ubuntu.com/community/MEncoder).
 
 ### Load Generator (clients.py)
 To simulate a realistic load and to test the scaling of the system a load generator is used. The load generator perodically increases and decreases the number of convertion requests per minute.
