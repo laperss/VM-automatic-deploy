@@ -12,12 +12,13 @@ python3 monitor.py
 ```
 
 ### Dependencies
+The following must be done on the master VM before the pakcages can be run: 
 ```bash
-$ sudo apt-get update 
-$ sudo apt install python-dev python-pip  
-$ export LC_ALL=C 
-$ sudo pip install python-novaclient==7.1.0 
-$ sudo pip install python-swiftclient
+sudo apt-get update 
+sudo apt install python-dev python-pip  
+export LC_ALL=C 
+sudo pip install python-novaclient==7.1.0 
+sudo pip install python-swiftclient
 ```
 ## Architecture
 The different components of the system are designed in a modular fashion, where each component has a specified task. The different components in the system are discussed below.
