@@ -28,7 +28,7 @@ Every backend is connected to the RabbitMQ. Upon request, the backend will recei
 ### Load Generator (clients.py)
 To simulate a realistic load and to test the scaling of the system a load generator is used. The load generator perodically increases and decreases the number of convertion requests per minute.
 
-### Monitor (vmonitor.py)
+### Monitor ([vmonitor.py](vmanager.py))
 The monitor is responsible for managing the amount of backend VMs in the system. It monitors the load of the system through the cpu usage of each VM, and automatically creates or deletes VMs depending on the demand. Openstack nova is used for the automatic deployment of VMs. In order to avoid the rapid creation and deletion of VMs an averaging window is used, during which the cpu usage is measured multiple times. If all VMs are fully loaded, a new VM will be created. If one of the VMs is not used this VM will be terminated. After every change in the system, a timer is used to make sure that the system has time to respond to the change.
 
 The monitor is also in charge of starting the VMs. This is done using the script [vmanager.py](vmanager.py). When a command is given to start a new VM, it will generate a name for the VM and a startup script for the VM to run upon creation. If the VM is a backend VM, the startup script includes downloading and starting the [backend.py](VM-deploy-scripts/backend.py) script.
