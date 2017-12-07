@@ -21,7 +21,8 @@ sudo pip install python-novaclient==7.1.0
 sudo pip install python-swiftclient
 ```
 ## Architecture
-![Cloud architecture](https://user-images.githubusercontent.com/4593893/33714845-c761ee1e-db50-11e7-9255-83ced47f49f7.png)
+![Cloud architecture](https://user-images.githubusercontent.com/4593893/33714926-14ec6f1a-db51-11e7-9bcc-9de7c1b4616c.png)
+
 The different components of the system are designed in a modular fashion, where each component has a specified task. The different components in the system are discussed below.
 
 ### Rabbitmq
