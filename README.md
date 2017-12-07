@@ -2,9 +2,12 @@
 This is a cloud application for robust video conversion. The application takes input videos and convert them to output videos of another size. For scalability and robustness, the cloud service scales with usage and is robust to backend failures.
 
 ## Run application 
-The application is run from one "master vm". This VM must be accesable from internet via a floating IP. 
+The application is run from one "master vm". This VM must be accesable from internet via a floating IP. The frontend is started from the frondend folder:
 ```
-python3 frontend_local.py -c waspmq/credentials_local.txt
+python3 frontend.py -c credentials.txt
+```
+The monitor is started using: 
+```
 python3 monitor.py
 ```
 
