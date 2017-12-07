@@ -62,6 +62,7 @@ class Manager:
         print("floating IP %s is assigned to %s VM", floating_ip.ip, vm)
 
     def list(self):
+        """ Print all VMs """
         for idx, server in enumerate(self.nova.servers.list()):
             print ("%d\t%s"%(idx,server.name),"\t",server.networks,sep="")
         return
@@ -101,15 +102,6 @@ class Manager:
         instance = self.nova.servers.find(name=vm)
         ip = instance.networks[self.net_id][0] 
         print(ip)
-  
-    def describe(self, vm):
-        instance = self.nova.servers.find(name=vm)
-        print("server id: %s\n" % instance.id)
-        print("server name: %s\n" % instance.name)
-        print("server image: %s\n" % instance.image)
-        print("server flavor: %s\n" % instance.flavor)
-        print("server key name: %s\n" % instance.key_name)
-        print("user_id: %s\n" % instance.user_id)
 
     def create_temporary_startup_script(self, script_path, key, name):
         """ Create a startup script for backend with name given by "name". """
