@@ -13,11 +13,6 @@ HOSTNAME = subprocess.check_output("hostname", shell=True)
 IP_ADDRESS = subprocess.check_output("ifconfig | grep  -m1 'inet addr:' | cut -d: -f2 | awk '{ print $1}'", shell=True)
 print "IP_ADDRESS =", IP_ADDRESS
 
-
-def callback(ch, method, properties, body):
-        print(" [x] Received %r" % body)
-
-
 def convert_video(source, dest):
         cmd = "mencoder %s -ovc lavc -lavcopts vcodec=mpeg4:vbitrate=3000 -oac copy -o %s >/dev/null 2>&1" % (source, dest)
         os.system(cmd)
