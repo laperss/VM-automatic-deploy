@@ -1,3 +1,7 @@
+#! /usr/bin/python
+"""
+VM Manager for communication with openstack.  
+"""
 from __future__ import print_function
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
@@ -15,14 +19,12 @@ class Manager:
     DEFAULT_FLAVOUR = "c2m2"
     def __init__(self, start_script=None):
         self.start_script = start_script
-
         parser = SafeConfigParser()
         try:
             parser.read("/home/ubuntu/VM-automatic-deploy/credentials.txt")
         except IOError:
             print("Credential file missing")
             sys.exit()
-
         self.username=parser.get("auth","username")
         self.password=parser.get("auth","password")
         self.tenant_name=parser.get("auth","tenant_name")
@@ -38,17 +40,16 @@ class Manager:
         self.nova = NovaClient("2", session = sess)
 
     def create(self, name=""):
+        """ Create a new VM """
         image = self.nova.images.find(name=Manager.DEFAULT_IMAGE)
         flavor = self.nova.flavors.find(name=Manager.DEFAULT_FLAVOUR)
         net = self.nova.networks.find(label=self.net_id)
         nics = [{'net-id': net.id}]
         hostname = name.lower().replace('_','-')
         script = self.create_temporary_startup_script(BACKEND_SCRIPT,KEY_FILE, hostname)
-
+        # Create startup script for this specific VM.
         with open(script,'r') as f:
             print(f.read())
-
-        
         vm = self.nova.servers.create(name=name, image=image, flavor=flavor, key_name=self.pkey_id,
                                       nics=nics, userdata=open(script))
         return
@@ -66,6 +67,7 @@ class Manager:
         return
 
     def terminate(self, vm=""):
+        """ Attempt to terminate VM """
         server_exists = False
         for s in self.nova.servers.list():
             if s.name == vm:
@@ -81,6 +83,7 @@ class Manager:
         return
 
     def get_IPs(self):
+        """ Print a list of all IPs """
         ip_list=self.nova.floating_ips.list()
         for ip in ip_list:
             print("fixed_ip : %s\n" % ip.fixed_ip)
@@ -88,11 +91,13 @@ class Manager:
             print("instance_id : %s" % ip.instance_id)
 
     def get_IP(self, vm):
+        """ Return the IP address of the VM """
         instance = self.nova.servers.find(name=vm)
         ip = instance.networks[self.net_id][0] 
         return ip
 
     def show_IP(self, vm):
+        """ Print IP address of VM in terminal """
         instance = self.nova.servers.find(name=vm)
         ip = instance.networks[self.net_id][0] 
         print(ip)
@@ -107,6 +112,7 @@ class Manager:
         print("user_id: %s\n" % instance.user_id)
 
     def create_temporary_startup_script(self, script_path, key, name):
+        """ Create a startup script for backend with name given by "name". """
         temp_dir = tempfile.gettempdir()
         temp_backend_script = os.path.join(temp_dir, 'temp_backend_script')
         startup_script = os.path.join(temp_dir, 'temp_startup_script_' + name)
@@ -129,8 +135,6 @@ class Manager:
             temp_file.write('echo "Start the Python Script"\n')
             temp_file.write('sleep 5\n')
             temp_file.write('sudo python /usr/local/WASP/backend.py -c /usr/local/WASP/credentials.txt\n')
-
-
         return startup_script
         
 
