@@ -23,7 +23,7 @@ For distribution of the load, we use [RabbitMQ](http://www.rabbitmq.com/) and [P
 The queue runs on a separate VM called "waspmq". The queue transfers information about the address and name of the video file to be downloaded and transformed. 
 
 ### Backends
-Every backend is connected to the RabbitMQ. Upon request, the backend will receive a JSON object containing information about the video to be converted. The video is then converted using [MEncoder](https://help.ubuntu.com/community/MEncoder).
+Every backend is connected to the RabbitMQ. Upon request, the backend will receive a JSON object containing information about the video to be converted. The video must be transfered to the backend from the frontend using ssh. The video is then converted using [MEncoder](https://help.ubuntu.com/community/MEncoder). A JSON object is sent back to the frontend including the link to where the video can be downloaded from. 
 
 ### Load Generator ([clients.py](clients.py))
 To simulate a realistic load and to test the scaling of the system a load generator is used. The load generator perodically increases and decreases the number of convertion requests per minute.
