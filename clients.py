@@ -50,7 +50,7 @@ if __name__ == "__main__":
     switch = 0
     userid = 0
     wait_threshold = 60
-    increments = 1
+    increments = 0.5
 
     wait = wait_threshold
     while True:
