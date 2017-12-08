@@ -19,7 +19,7 @@ NETWORK = 'sw_network'
 
 MEAS_SAMPLES = 10 # Number of measurements to take
 MEAS_SAMPLE_DELAY = 6 # Number of seconds per measurement
-MODIFY_TIMER = 600 # Number of seconds before next modification is allowed
+MODIFY_TIMER = 400 # Number of seconds before next modification is allowed
 MODIFY_TIMER_ITERATIONS = int(MODIFY_TIMER / (MEAS_SAMPLES * MEAS_SAMPLE_DELAY))
 
 
