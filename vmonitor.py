@@ -153,14 +153,14 @@ try:
         log("number_backends\t" + str(len(vms['backend'])))
 
         # Scale up
-        if all(load > 60 for load in loads.values()) and modify_timer == 0:
+        if all(load > 90 for load in loads.values()) and modify_timer == 0:
             create_backend()
             modify_timer = MODIFY_TIMER_ITERATIONS
 
         # Scale down
-        if any(load < 20 for load in loads.values()) and modify_timer == 0 and len(vms['backend']) > 1:
+        if any(load < 5 for load in loads.values()) and modify_timer == 0 and len(vms['backend']) > 1:
             for ip, load in loads.items():
-                if load < 20:
+                if load < 5:
                     terminate_vm(get_name(ip))
                     break
             modify_timer = 5 # Scaling down is fast, no need to wait long
