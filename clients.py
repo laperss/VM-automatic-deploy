@@ -60,14 +60,12 @@ if __name__ == "__main__":
         userthread.start()
         
         # Sleep for a period of time
+        print(wait)
         time.sleep(wait)
         userid += 1
         
         # Vary sleeping period periodically
         if wait > 0 and not switch:
-            wait -= increments
-        elif wait > wait_threshold - 1:
-            switch = 0
             wait -= increments
         elif switch:
             wait += increments
