@@ -39,3 +39,8 @@ To simulate a realistic load and to test the scaling of the system a load genera
 The monitor is responsible for managing the amount of backend VMs in the system. It monitors the load of the system through the cpu usage of each VM, and automatically creates or deletes VMs depending on the demand. Openstack nova is used for the automatic deployment of VMs. In order to avoid the rapid creation and deletion of VMs an averaging window is used, during which the cpu usage is measured multiple times. If all VMs are fully loaded, a new VM will be created. If one of the VMs is not used this VM will be terminated. After every change in the system, a timer is used to make sure that the system has time to respond to the change.
 
 The monitor is also in charge of starting the VMs. This is done using the script [vmanager.py](vmanager.py). When a command is given to start a new VM, it will generate a name for the VM and a startup script for the VM to run upon creation. If the VM is a backend VM, the startup script includes downloading and starting the [backend.py](VM-deploy-scripts/backend.py) script.
+
+## Results
+Experiments were run where teh VMs are put through cyclic load changes. The results show that the system is able to adapt to the number of requests, with a slight time delay corresponding to the startup time of the VMs. 
+
+![Experimental results](https://user-images.githubusercontent.com/4593893/35264087-a467e914-001b-11e8-9c13-a37ecaf3dc6a.png)
