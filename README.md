@@ -43,6 +43,6 @@ The monitor is also in charge of starting the VMs. This is done using the script
 ## Results
 Experiments were run where teh VMs are put through cyclic load changes. The results show that the system is able to adapt to the number of requests, with a slight time delay corresponding to the startup time of the VMs. 
 
-The figure below shows the requests per minute (blue) and the number of VMs that were automatically started (red). 
+The figure below shows the requests (blue) and the number of VMs that were automatically started (red). 
 
 ![Experimental results](https://user-images.githubusercontent.com/4593893/35264087-a467e914-001b-11e8-9c13-a37ecaf3dc6a.png)
